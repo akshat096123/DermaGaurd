@@ -1,0 +1,27 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment
+.venv/
+backend/.venv/
+env/
+venv/
+
+# Large Datasets & Archives
+*.zip
+data/raw/
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Node
+node_modules/
+.next/
+dist/
+build/
