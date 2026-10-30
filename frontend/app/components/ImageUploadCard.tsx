@@ -9,6 +9,8 @@ import {
   ArrowRight,
   CheckCircle2,
   Scan,
+  Shield,
+  X,
 } from "lucide-react";
 import { PresetCase } from "../types";
 import TactileSkinDepthMesh from "./TactileSkinDepthMesh";
@@ -21,6 +23,7 @@ interface ImageUploadCardProps {
   onSelectImageFile: (file: File) => void;
   onSelectPreset: (preset: PresetCase) => void;
   onCameraCapture: (blob: Blob, dataUrl: string) => void;
+  onClearImage?: () => void;
   presets: PresetCase[];
   onVerify: () => void;
   isLoading: boolean;
@@ -33,6 +36,7 @@ export default function ImageUploadCard({
   onSelectImageFile,
   onSelectPreset,
   onCameraCapture,
+  onClearImage,
   presets,
   onVerify,
   isLoading,
@@ -58,46 +62,69 @@ export default function ImageUploadCard({
 
   return (
     <div className="w-full max-w-5xl mx-auto rounded-[28px] bg-white border border-[#F2E8E3] shadow-[0_12px_36px_rgba(28,25,23,0.05)] p-6 sm:p-8 space-y-6">
-      {/* Header Row */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#F2E8E3] gap-3">
-        <div>
-          <span className="text-[11px] font-bold text-[#E85D44] uppercase tracking-wider block">
-            Page 1 • Dermoscopy Acquisition
-          </span>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-[#18181B] tracking-tight">
-            Upload Patient Dermoscopy Scan
-          </h1>
-          <p className="text-xs text-[#78716C] mt-0.5">
-            Select or capture high-resolution skin lesion imagery. Verify to advance to multi-agent diagnostics.
-          </p>
+      {/* Brand Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#F2E8E3] gap-4">
+        <div className="flex items-center gap-3">
+          <div className="relative flex items-center justify-center w-11 h-11 rounded-2xl bg-gradient-to-br from-[#E85D44] via-[#F27059] to-[#D4472E] text-white shadow-md shadow-[#E85D44]/25 shrink-0">
+            <Shield className="w-5 h-5 text-white" />
+            <span className="absolute -top-1 -right-1 w-3 h-3 bg-[#10B981] border-2 border-white rounded-full" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-extrabold tracking-tight text-[#18181B]">
+                DermaGuard <span className="text-[#E85D44] font-bold">Clinical</span>
+              </span>
+              <span className="px-2 py-0.5 text-[10px] font-bold tracking-wide uppercase rounded-full bg-[#E85D44]/10 text-[#E85D44]">
+                Enterprise
+              </span>
+            </div>
+            <p className="text-[11px] text-[#78716C] font-medium leading-none mt-0.5">
+              Autonomous Dermatology & Multi-Agent Triage Platform
+            </p>
+          </div>
         </div>
 
-        {/* 2D Standard vs 3D Relief Topography Toggle */}
-        <div className="flex items-center p-1 rounded-xl bg-[#FAF4F0] border border-[#F2E8E3] text-xs font-bold self-start sm:self-auto">
-          <button
-            type="button"
-            onClick={() => setViewMode("2d")}
-            className={`px-3.5 py-1.5 rounded-lg transition-all ${
-              viewMode === "2d"
-                ? "bg-white text-[#18181B] shadow-sm border border-[#E5DCD4]"
-                : "text-[#78716C] hover:text-[#18181B]"
-            }`}
-          >
-            Standard 2D
-          </button>
-          <button
-            type="button"
-            onClick={() => setViewMode("3d")}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg transition-all ${
-              viewMode === "3d"
-                ? "bg-[#E85D44] text-white shadow-sm"
-                : "text-[#78716C] hover:text-[#18181B]"
-            }`}
-          >
-            <Layers className="w-3.5 h-3.5" />
-            <span>3D Relief</span>
-          </button>
-        </div>
+        {/* 2D Standard vs 3D Relief Topography Toggle (Active when image selected) */}
+        {selectedImageUrl && (
+          <div className="flex items-center p-1 rounded-xl bg-[#FAF4F0] border border-[#F2E8E3] text-xs font-bold self-start sm:self-auto">
+            <button
+              type="button"
+              onClick={() => setViewMode("2d")}
+              className={`px-3.5 py-1.5 rounded-lg transition-all ${
+                viewMode === "2d"
+                  ? "bg-white text-[#18181B] shadow-sm border border-[#E5DCD4]"
+                  : "text-[#78716C] hover:text-[#18181B]"
+              }`}
+            >
+              Standard 2D
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("3d")}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg transition-all ${
+                viewMode === "3d"
+                  ? "bg-[#E85D44] text-white shadow-sm"
+                  : "text-[#78716C] hover:text-[#18181B]"
+              }`}
+            >
+              <Layers className="w-3.5 h-3.5" />
+              <span>3D Relief</span>
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Title & Instructions */}
+      <div className="space-y-1">
+        <span className="text-[11px] font-bold text-[#E85D44] uppercase tracking-wider block">
+          Dermoscopy Intake
+        </span>
+        <h1 className="text-xl sm:text-2xl font-extrabold text-[#18181B] tracking-tight">
+          Upload Patient Dermoscopy Scan
+        </h1>
+        <p className="text-xs text-[#78716C]">
+          Upload an image, capture via smart camera, or choose a benchmark case below. Click <strong>Verify</strong> to run multi-agent evaluation.
+        </p>
       </div>
 
       {/* Main Interactive Image Stage / Drag-and-Drop Area */}
@@ -111,7 +138,9 @@ export default function ImageUploadCard({
         className={`relative w-full aspect-[16/9] sm:aspect-[2/1] rounded-[24px] overflow-hidden border-2 transition-all ${
           dragOver
             ? "border-[#E85D44] bg-[#FCEAE3]/40"
-            : "border-[#F2E8E3] bg-[#FAF4F0]"
+            : selectedImageUrl
+            ? "border-[#F2E8E3] bg-[#FAF4F0]"
+            : "border-[#F2E8E3] border-dashed bg-[#FAF4F0]/60 hover:border-[#E85D44]/60 hover:bg-[#FCEAE3]/20"
         } flex items-center justify-center`}
       >
         {selectedImageUrl ? (
@@ -126,21 +155,52 @@ export default function ImageUploadCard({
                 <CheckCircle2 className="w-3.5 h-3.5 text-[#10B981]" />
                 <span>Scan ID: {selectedImageId || "Custom Upload"}</span>
               </div>
+              {onClearImage && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onClearImage();
+                  }}
+                  className="absolute top-4 right-4 px-3 py-1.5 rounded-full bg-white/95 hover:bg-white text-[#E11D48] text-xs font-bold flex items-center gap-1.5 shadow-md border border-[#F2E8E3] transition-all"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  <span>Clear Scan</span>
+                </button>
+              )}
             </div>
           ) : (
-            <TactileSkinDepthMesh imageUrl={selectedImageUrl} className="w-full h-full" />
+            <div className="relative w-full h-full">
+              <TactileSkinDepthMesh imageUrl={selectedImageUrl} className="w-full h-full" />
+              {onClearImage && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onClearImage();
+                  }}
+                  className="absolute top-4 right-4 px-3 py-1.5 rounded-full bg-white/95 hover:bg-white text-[#E11D48] text-xs font-bold flex items-center gap-1.5 shadow-md border border-[#F2E8E3] transition-all z-10"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  <span>Clear Scan</span>
+                </button>
+              )}
+            </div>
           )
         ) : (
-          <div className="text-center p-8 space-y-3">
-            <div className="w-16 h-16 rounded-2xl bg-white shadow-md border border-[#F2E8E3] flex items-center justify-center mx-auto text-[#E85D44]">
+          <div
+            onClick={() => fileInputRef.current?.click()}
+            className="text-center p-8 space-y-3 cursor-pointer select-none group"
+          >
+            <div className="w-16 h-16 rounded-2xl bg-white shadow-md border border-[#F2E8E3] flex items-center justify-center mx-auto text-[#E85D44] group-hover:scale-105 transition-transform">
               <Upload className="w-8 h-8" />
             </div>
             <div>
-              <h3 className="text-base font-extrabold text-[#18181B]">
+              <h3 className="text-base font-extrabold text-[#18181B] group-hover:text-[#E85D44] transition-colors">
                 Drag & Drop Dermoscopy Scan Here
               </h3>
               <p className="text-xs text-[#78716C] mt-1">
-                Supports dermatologic JPEG, PNG, or TIFF files up to 25MB
+                Or click anywhere in this area to browse from your device (JPEG, PNG, TIFF up to 25MB)
               </p>
             </div>
           </div>
@@ -243,6 +303,11 @@ export default function ImageUploadCard({
               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               <span>Verifying Scan Quality & Advancing to Diagnostics...</span>
             </>
+          ) : !selectedImageUrl ? (
+            <>
+              <Scan className="w-5 h-5" />
+              <span>Upload or Select a Scan Above to Verify</span>
+            </>
           ) : (
             <>
               <Scan className="w-5 h-5" />
@@ -252,7 +317,13 @@ export default function ImageUploadCard({
           )}
         </button>
         <p className="text-[11px] text-[#A8A29E] text-center font-medium">
-          Clicking <strong>Verify</strong> certifies optical quality and automatically transitions to Page 2 for multi-agent diagnostic analysis.
+          {selectedImageUrl ? (
+            <>
+              Clicking <strong>Verify</strong> certifies optical quality and unlocks the full diagnostic workstation and navigation options.
+            </>
+          ) : (
+            <>Please upload or select a dermoscopy scan above to enable the verification sequence.</>
+          )}
         </p>
       </div>
 

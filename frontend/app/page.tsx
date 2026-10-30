@@ -119,11 +119,10 @@ export default function Home() {
     sex: "female",
     localization: "upper extremity",
   });
+  const [hasVerified, setHasVerified] = useState<boolean>(false);
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
-  const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(
-    "/samples/ISIC_0024693.jpg"
-  );
-  const [selectedImageId, setSelectedImageId] = useState<string | null>("ISIC_0024693");
+  const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
+  const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
 
   // Analysis & Modal State
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -183,6 +182,13 @@ export default function Home() {
     setSelectedImageFile(file);
     setSelectedImageId(`WEBRTC_${Date.now()}`);
     setSelectedImageUrl(dataUrl);
+  };
+
+  // Clear selected image back to blank
+  const handleClearImage = () => {
+    setSelectedImageFile(null);
+    setSelectedImageUrl(null);
+    setSelectedImageId(null);
   };
 
   // Run 6-Agent Inference
@@ -341,6 +347,7 @@ export default function Home() {
   // Handle Verification on Page 1 -> automatically transitions to Page 2 for further processing
   const handleVerify = async () => {
     if (!selectedImageUrl) return;
+    setHasVerified(true);
     setActiveView("diagnosis");
     window.scrollTo({ top: 0, behavior: "smooth" });
     await handleStartAnalysis();
@@ -359,12 +366,14 @@ export default function Home() {
         <div className="absolute -bottom-40 right-1/4 w-96 h-96 rounded-full bg-[#FCEAE3] blur-3xl opacity-40" />
       </div>
 
-      {/* Persistent Top Navigation Bar */}
-      <Header
-        activeView={activeView}
-        onSelectView={setActiveView}
-        isBackendConnected={isBackendConnected}
-      />
+      {/* Top Navigation Bar: Hidden on initial home/upload screen; appears after user clicks verify */}
+      {hasVerified && (
+        <Header
+          activeView={activeView}
+          onSelectView={setActiveView}
+          isBackendConnected={isBackendConnected}
+        />
+      )}
 
       {/* Main Workspace Container */}
       <main className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-8 overflow-x-hidden">
@@ -378,6 +387,7 @@ export default function Home() {
               onSelectImageFile={handleSelectImageFile}
               onSelectPreset={handleSelectPreset}
               onCameraCapture={handleCameraCapture}
+              onClearImage={handleClearImage}
               presets={presets}
               onVerify={handleVerify}
               isLoading={isLoading}
