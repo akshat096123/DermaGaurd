@@ -52,7 +52,8 @@ export default function DiagnosticReportView({
   const a1Status = a1?.status ?? "PASS";
   const a1Usable = a1?.is_usable ?? true;
   const a1Score = a1?.quality_score ?? 0.95;
-  const a1Blur = a1?.blur_score ?? 120;
+  const rawBlur = a1?.blur_score ?? 88;
+  const a1Blur = rawBlur <= 1.0 ? rawBlur * 100 : Math.min(100, rawBlur);
   const a1Illum = a1?.illumination_score ?? 0.92;
   const a1Glare = a1?.glare_ratio ?? 0.02;
   const a1Obstruction = a1?.obstruction_ratio ?? 0.01;

@@ -60,18 +60,18 @@ CLASS_DESCRIPTIONS: Dict[str, str] = {
 STANDARD_IMAGE_HEIGHT: int = 450
 STANDARD_IMAGE_WIDTH: int = 600
 
-# Agent 1 Quality Thresholds (Calibrated to HAM10000 Dermoscopy Distribution)
+# Agent 1 Quality Thresholds (Calibrated for Balanced Diagnostic & User Photo Intake)
 QUALITY_THRESHOLDS = {
-    "laplacian_var_fail": 17.0,       # Severe blur (bottom ~2.5% outlier)
-    "laplacian_var_warn": 26.0,       # Soft focus / borderline blur
-    "illumination_underexposed": 35.0,# Extremely dark
-    "illumination_overexposed": 238.0,# Severe blowout
-    "illumination_low_contrast": 10.0,# Flat contrast L* standard deviation
-    "glare_ratio_fail": 0.08,         # >8% specular flash reflection
-    "glare_ratio_warn": 0.015,        # 1.5 - 8% noticeable flash glare
-    "obstruction_ratio_fail": 0.14,   # >14% heavy hair / ruler obstruction
-    "obstruction_ratio_warn": 0.055,  # 5.5 - 14% moderate hair density
-    "vignette_ratio_max": 0.25,       # Vignette border proportion
+    "laplacian_var_fail": 12.0,       # Severe blur threshold (reduced to 12.0 so clear user/webcam photos easily pass)
+    "laplacian_var_warn": 18.0,       # Soft focus advisory
+    "illumination_underexposed": 15.0,# Only completely dark / pitch-black frames fail (< 15 L*)
+    "illumination_overexposed": 248.0,# Only completely blown-out / pure white frames fail (> 248 L*)
+    "illumination_low_contrast": 4.0, # Flat contrast advisory threshold
+    "glare_ratio_fail": 0.25,         # >25% severe specular flash blinding
+    "glare_ratio_warn": 0.12,         # 12 - 25% noticeable flash glare advisory
+    "obstruction_ratio_fail": 0.35,   # >35% severe physical obstruction
+    "obstruction_ratio_warn": 0.15,   # 15 - 35% hair density advisory
+    "vignette_ratio_max": 0.35,       # Vignette border proportion
 }
 
 # Agent 3 Lesion Analysis ABCD Weights
