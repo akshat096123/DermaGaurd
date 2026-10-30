@@ -1,53 +1,98 @@
 @import "tailwindcss";
 
 :root {
-  --background: #06080D;
-  --foreground: #f1f5f9;
+  --background: #FAF5F0;
+  --foreground: #18181B;
+  --primary-coral: #E85D44;
+  --primary-coral-dark: #D4472E;
+  --clinical-teal: #0D9488;
+  --clinical-teal-dark: #0F766E;
+  --status-emerald: #10B981;
+  --status-amber: #F59E0B;
+  --status-crimson: #E11D48;
+  --warm-card: #FFFFFF;
+  --warm-border: #F3EAE3;
+  --text-muted: #71717A;
 }
 
 body {
-  background-color: #06080D;
-  color: #f1f5f9;
-  font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+  background-color: #FAF5F0;
+  color: #18181B;
+  font-family: var(--font-sans, "Plus Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+  min-height: 100vh;
+  position: relative;
   overflow-x: hidden;
-  background-image: 
-    radial-gradient(circle at 50% 0%, rgba(20, 35, 60, 0.25) 0%, transparent 60%),
-    radial-gradient(circle at 100% 100%, rgba(10, 20, 40, 0.3) 0%, transparent 50%);
-  background-attachment: fixed;
 }
 
-/* Custom telemetry scrollbar */
+/* Multi-layered organic medical mesh gradient background */
+.bg-mesh-canvas {
+  background: 
+    radial-gradient(circle at 10% 15%, rgba(242, 112, 89, 0.12) 0%, transparent 45%),
+    radial-gradient(circle at 90% 10%, rgba(13, 148, 136, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 50% 80%, rgba(252, 234, 227, 0.7) 0%, transparent 60%),
+    radial-gradient(circle at 85% 85%, rgba(242, 112, 89, 0.08) 0%, transparent 45%),
+    #FAF5F0;
+}
+
+/* Subtle architectural dot grid */
+.bg-dot-grid {
+  background-image: radial-gradient(rgba(28, 25, 23, 0.06) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Frosted Glass Card standard */
+.glass-card {
+  background-color: rgba(255, 255, 255, 0.90);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 20px 50px rgba(28, 25, 23, 0.07);
+  border-radius: 28px;
+}
+
+.glass-card-subtle {
+  background-color: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(243, 234, 227, 0.9);
+  box-shadow: 0 10px 30px rgba(28, 25, 23, 0.04);
+  border-radius: 20px;
+}
+
+/* Camera Reticle Pulse Animation */
+@keyframes reticle-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.04);
+    opacity: 1;
+  }
+}
+
+.animate-reticle-pulse {
+  animation: reticle-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Smooth custom scrollbars */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #06080d;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
-  border-radius: 4px;
+  background: #E4D8CF;
+  border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #D4C5B9;
 }
 
-/* Clinical scanline animation */
-@keyframes scanline {
-  0% { transform: translateY(-100%); }
-  100% { transform: translateY(1000%); }
-}
-
-.animate-scanline {
-  animation: scanline 8s linear infinite;
-}
-
-/* Pulse glow keyframes */
-@keyframes pulseGlow {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 0.9; }
-}
-
-.animate-pulse-glow {
-  animation: pulseGlow 2.5s ease-in-out infinite;
+/* Floating 3D Badge Sphere */
+.badge-3d-sphere {
+  background: radial-gradient(circle at 30% 30%, #FFA08A 0%, #E85D44 60%, #C93E26 100%);
+  box-shadow: 0 8px 18px rgba(232, 93, 68, 0.35), inset 0 2px 4px rgba(255, 255, 255, 0.6);
 }

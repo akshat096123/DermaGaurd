@@ -1,16 +1,28 @@
-/**
- * Clinical Data Contracts & TypeScript Types
- * Agentic DermaGuard - FDA-Grade SaMD Diagnostic Workstation
- */
+export type ActiveStage = "intake" | "report" | "benchmark";
 
-export type ClinicalDecision = "AUTO_TRIAGE" | "REFER" | "RE_IMAGE";
-export type QualityStatus = "PASS" | "WARN" | "FAIL";
-export type SuspicionLevel = "LOW" | "MODERATE" | "SUSPICIOUS" | "HIGH";
-export type RiskLevel = "LOW" | "MODERATE" | "ELEVATED" | "HIGH";
-export type SafetySeverity = "CLEAR" | "CAUTION" | "SAFETY_FLAG" | "CRITICAL_VETO";
+export interface PresetCase {
+  id: string;
+  image_id: string;
+  age: number;
+  sex: string;
+  localization: string;
+  dx: string;
+  disease_name: string;
+  category: string;
+  clinical_history: string;
+  expected_decision: "AUTO_TRIAGE" | "REFER" | "RE_IMAGE";
+  expected_gate: string;
+  badge_color: "emerald" | "rose" | "amber";
+}
 
-export interface Agent1QualityOutput {
-  status: QualityStatus;
+export interface PatientContext {
+  age: number;
+  sex: "male" | "female" | "unknown";
+  localization: string;
+}
+
+export interface Agent1Quality {
+  status: "PASS" | "WARN" | "FAIL";
   quality_score: number;
   blur_score: number;
   illumination_score: number;
@@ -21,7 +33,7 @@ export interface Agent1QualityOutput {
   is_usable: boolean;
 }
 
-export interface Agent2DiagnosisOutput {
+export interface Agent2Diagnosis {
   predicted_class: string;
   confidence: number;
   probabilities: Record<string, number>;
@@ -31,111 +43,64 @@ export interface Agent2DiagnosisOutput {
   malignant_probability_mass: number;
 }
 
-export interface Agent3LesionOutput {
+export interface Agent3Lesion {
   asymmetry_score: number;
   border_irregularity_score: number;
-  color_variation_score: number;
-  distinct_color_zones: string[];
+  color_variegation_score: number;
+  diameter_compactness_score: number;
   suspicion_score: number;
-  suspicion_label: SuspicionLevel;
-  feature_evidence: string[];
-  reliability_flags: string[];
-  lesion_area_ratio: number;
+  suspicion_label: "LOW" | "MODERATE" | "HIGH";
+  dominant_colors: string[];
+  geometry_details?: Record<string, any>;
 }
 
-export interface Agent4ContextOutput {
-  age: number | null;
-  sex: string;
-  localization: string;
-  missing_field_flags: string[];
-  malignancy_prior_multiplier: number;
-  class_prior_shifts: Record<string, number>;
-  risk_indicator: RiskLevel;
-  context_evidence: string[];
+export interface Agent4Context {
+  age_factor: number;
+  sex_factor: number;
+  localization_factor: number;
+  prior_multiplier: number;
+  risk_indicator: "LOW" | "MODERATE" | "HIGH";
+  clinical_summary: string;
 }
 
-export interface Agent5SafetyOutput {
+export interface Agent5Safety {
   safety_flag: boolean;
   veto_auto_triage: boolean;
-  severity: SafetySeverity;
+  severity: "CLEAR" | "CAUTION" | "SAFETY_FLAG" | "CRITICAL_VETO";
   triggers: string[];
   justification: string;
   conflict_detected: boolean;
 }
 
-export interface Agent6CoordinatorOutput {
+export interface Agent6Coordinator {
   image_id: string;
   prediction: string;
-  decision: ClinicalDecision;
+  decision: "AUTO_TRIAGE" | "REFER" | "RE_IMAGE";
   policy_rule_triggered: string;
   traceable_rationale: string;
-  card_summary: {
-    A1: string;
-    A2: string;
-    A3_A4: string;
-    A5: string;
-    A6: string;
-  };
+  card_summary: Record<string, string>;
 }
 
-export interface FullPipelineResult {
-  image_id: string;
-  metadata: {
-    lesion_id?: string;
-    age?: number;
-    sex?: string;
-    localization?: string;
-    dx?: string;
-    [key: string]: any;
-  };
-  agent1_quality: Agent1QualityOutput;
-  agent2_diagnosis: Agent2DiagnosisOutput;
-  agent3_lesion: Agent3LesionOutput;
-  agent4_context: Agent4ContextOutput;
-  agent5_safety: Agent5SafetyOutput;
-  agent6_coordinator: Agent6CoordinatorOutput;
-  execution_time_ms: number;
-  imageUrl?: string;
-}
-
-export interface ClinicalClassInfo {
-  code: string;
-  name: string;
-  isMalignant: boolean;
-  color: string;
-  description: string;
-  prevalence: string;
-}
-
-export interface SampleCase {
-  id: string;
-  label: string;
-  dx: string;
-  age: number;
-  sex: "male" | "female" | "unknown";
-  localization: string;
-  imageUrl: string;
-  clinicalDescription: string;
-  pipelineResult: FullPipelineResult;
-}
-
-export interface BatchItem {
-  id: string;
-  image_id: string;
-  age: number;
-  sex: string;
-  localization: string;
+export interface AnalysisVerdict {
+  decision: "AUTO_TRIAGE" | "REFER" | "RE_IMAGE";
   prediction: string;
+  disease_name: string;
   confidence: number;
-  decision: ClinicalDecision;
-  latency_ms: number;
-  triggers: string[];
-  status: "pending" | "processing" | "completed";
+  policy_rule_triggered: string;
+  traceable_rationale: string;
 }
 
-export interface ConfusionMatrixCell {
-  actual: string;
-  predicted: string;
-  count: number;
-  percentage: number;
+export interface AnalysisResponse {
+  image_id: string;
+  timestamp: string;
+  patient_context: PatientContext;
+  verdict: AnalysisVerdict;
+  agents: {
+    a1: Agent1Quality;
+    a2: Agent2Diagnosis;
+    a3: Agent3Lesion;
+    a4: Agent4Context;
+    a5: Agent5Safety;
+    a6: Agent6Coordinator;
+  };
 }

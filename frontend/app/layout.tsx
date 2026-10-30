@@ -1,22 +1,17 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({
+const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-sans",
   subsets: ["latin"],
-  display: "swap",
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-mono",
-  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Agentic DermaGuard™ | FDA-Grade Clinical Triage Workstation",
-  description: "Six-Agent Autonomous Multi-Modal Dermatological Diagnostic & Triage System (ISO-13485 / FDA SaMD Class II Conformant)",
+  title: "DermaGuard — Clinical Triage & Diagnostic Intelligence",
+  description: "Editorial multi-agent dermatological diagnostic and triage system.",
 };
 
 export default function RootLayout({
@@ -25,11 +20,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html
-      lang="en"
-      className={`${inter.variable} ${jetbrainsMono.variable} dark h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col bg-[#06080D] text-slate-100 selection:bg-cyan-500/20 selection:text-cyan-300">
+    <html lang="en" className={`${plusJakartaSans.variable} h-full antialiased`}>
+      <body className="min-h-full flex flex-col bg-[#FAF4F0] text-[#1C1917] selection:bg-[#F2765E]/15 selection:text-[#F2765E]">
         {children}
       </body>
     </html>
