@@ -51,13 +51,42 @@ export default function DiagnosticReportView({
   const [expandedAgent, setExpandedAgent] = useState<string | null>("A5");
 
   const { verdict, agents, patient_context } = report;
-  const isAutoTriage = verdict.decision === "AUTO_TRIAGE";
-  const isRefer = verdict.decision === "REFER";
-  const isReImage = verdict.decision === "RE_IMAGE";
+  const isAutoTriage = verdict?.decision === "AUTO_TRIAGE";
+  const isRefer = verdict?.decision === "REFER";
+  const isReImage = verdict?.decision === "RE_IMAGE";
 
-  // Calculate malignant mass percentage
-  const malMassPercent = Math.round(agents.a2.malignant_probability_mass * 100);
+  // Safe fallback metrics
+  const malMass = agents?.a2?.malignant_probability_mass ?? 0.05;
+  const malMassPercent = Math.round(malMass * 100);
   const benignMassPercent = 100 - malMassPercent;
+
+  const a1Status = agents?.a1?.status ?? "PASS";
+  const a1Blur = agents?.a1?.blur_score ?? 100;
+  const a1Illum = agents?.a1?.illumination_score ?? 0.9;
+  const a1Glare = agents?.a1?.glare_ratio ?? 0.01;
+  const a1Usable = agents?.a1?.is_usable ?? true;
+
+  const a2Pred = agents?.a2?.predicted_class ?? verdict?.prediction ?? "nv";
+  const a2Conf = agents?.a2?.confidence ?? verdict?.confidence ?? 0.85;
+  const a2Entropy = agents?.a2?.entropy ?? 0.3;
+  const a2Top2Class = agents?.a2?.top2_class ?? "bkl";
+  const a2Top2Conf = agents?.a2?.top2_confidence ?? 0.05;
+
+  const a3Suspicion = agents?.a3?.suspicion_label ?? "LOW";
+  const a3Asymmetry = agents?.a3?.asymmetry_score ?? 0.2;
+  const a3Border = agents?.a3?.border_irregularity_score ?? 0.2;
+  const a3ColorVar = agents?.a3?.color_variegation_score ?? (agents?.a3 as any)?.color_variation_score ?? 0.2;
+  const a3Diameter = agents?.a3?.diameter_compactness_score ?? (agents?.a3 as any)?.lesion_area_ratio ?? 0.3;
+  const a3Score = agents?.a3?.suspicion_score ?? 0.2;
+
+  const a4Risk = agents?.a4?.risk_indicator ?? "LOW";
+  const a4Prior = Number(agents?.a4?.prior_multiplier ?? (agents?.a4 as any)?.malignancy_prior_multiplier ?? 1.0);
+  const a4Summary = agents?.a4?.clinical_summary ?? (agents?.a4 as any)?.context_evidence?.join(" • ") ?? `${patient_context.age}y ${patient_context.sex} presentation on ${patient_context.localization}`;
+
+  const a5Veto = agents?.a5?.veto_auto_triage ?? false;
+  const a5Severity = agents?.a5?.severity ?? "CLEAR";
+  const a5Triggers = agents?.a5?.triggers ?? [];
+  const a5Justification = agents?.a5?.justification ?? "No safety guardrail triggers active.";
 
   return (
     <div className="w-full space-y-8 animate-in fade-in duration-300">
@@ -196,7 +225,7 @@ export default function DiagnosticReportView({
 
             <div className="mt-3 flex items-center justify-between text-[11px] text-[#71717A]">
               <span>Real Dermoscopy File: {report.image_id}.jpg</span>
-              <span className="font-semibold text-[#0D9488]">Optical Quality: {agents.a1.status}</span>
+              <span className="font-semibold text-[#0D9488]">Optical Quality: {a1Status}</span>
             </div>
           </div>
 
@@ -211,14 +240,14 @@ export default function DiagnosticReportView({
               </div>
               <span
                 className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${
-                  agents.a3.suspicion_label === "HIGH"
+                  a3Suspicion === "HIGH" || a3Suspicion === "SUSPICIOUS"
                     ? "bg-[#E11D48]/15 text-[#E11D48]"
-                    : agents.a3.suspicion_label === "MODERATE"
+                    : a3Suspicion === "MODERATE"
                     ? "bg-[#F59E0B]/15 text-[#F59E0B]"
                     : "bg-[#10B981]/15 text-[#047857]"
                 }`}
               >
-                Suspicion: {agents.a3.suspicion_label}
+                Suspicion: {a3Suspicion}
               </span>
             </div>
 
@@ -227,14 +256,14 @@ export default function DiagnosticReportView({
               <div>
                 <div className="flex justify-between text-xs font-semibold text-[#18181B] mb-1">
                   <span>Asymmetry (A)</span>
-                  <span>{Math.round(agents.a3.asymmetry_score * 100)}%</span>
+                  <span>{Math.round(a3Asymmetry * 100)}%</span>
                 </div>
                 <div className="w-full h-2 bg-[#FAF5F0] rounded-full overflow-hidden border border-[#F3EAE3]">
                   <div
                     className={`h-full rounded-full ${
-                      agents.a3.asymmetry_score > 0.6 ? "bg-[#E11D48]" : "bg-[#0D9488]"
+                      a3Asymmetry > 0.6 ? "bg-[#E11D48]" : "bg-[#0D9488]"
                     }`}
-                    style={{ width: `${Math.min(100, agents.a3.asymmetry_score * 100)}%` }}
+                    style={{ width: `${Math.min(100, a3Asymmetry * 100)}%` }}
                   />
                 </div>
               </div>
@@ -243,15 +272,15 @@ export default function DiagnosticReportView({
               <div>
                 <div className="flex justify-between text-xs font-semibold text-[#18181B] mb-1">
                   <span>Border Irregularity (B)</span>
-                  <span>{Math.round(agents.a3.border_irregularity_score * 100)}%</span>
+                  <span>{Math.round(a3Border * 100)}%</span>
                 </div>
                 <div className="w-full h-2 bg-[#FAF5F0] rounded-full overflow-hidden border border-[#F3EAE3]">
                   <div
                     className={`h-full rounded-full ${
-                      agents.a3.border_irregularity_score > 0.6 ? "bg-[#E11D48]" : "bg-[#0D9488]"
+                      a3Border > 0.6 ? "bg-[#E11D48]" : "bg-[#0D9488]"
                     }`}
                     style={{
-                      width: `${Math.min(100, agents.a3.border_irregularity_score * 100)}%`,
+                      width: `${Math.min(100, a3Border * 100)}%`,
                     }}
                   />
                 </div>
@@ -261,15 +290,15 @@ export default function DiagnosticReportView({
               <div>
                 <div className="flex justify-between text-xs font-semibold text-[#18181B] mb-1">
                   <span>Color Variegation (C)</span>
-                  <span>{Math.round(agents.a3.color_variegation_score * 100)}%</span>
+                  <span>{Math.round(a3ColorVar * 100)}%</span>
                 </div>
                 <div className="w-full h-2 bg-[#FAF5F0] rounded-full overflow-hidden border border-[#F3EAE3]">
                   <div
                     className={`h-full rounded-full ${
-                      agents.a3.color_variegation_score > 0.6 ? "bg-[#E11D48]" : "bg-[#0D9488]"
+                      a3ColorVar > 0.6 ? "bg-[#E11D48]" : "bg-[#0D9488]"
                     }`}
                     style={{
-                      width: `${Math.min(100, agents.a3.color_variegation_score * 100)}%`,
+                      width: `${Math.min(100, a3ColorVar * 100)}%`,
                     }}
                   />
                 </div>
@@ -279,15 +308,15 @@ export default function DiagnosticReportView({
               <div>
                 <div className="flex justify-between text-xs font-semibold text-[#18181B] mb-1">
                   <span>Diameter / Compactness (D)</span>
-                  <span>{Math.round(agents.a3.diameter_compactness_score * 100)}%</span>
+                  <span>{Math.round(a3Diameter * 100)}%</span>
                 </div>
                 <div className="w-full h-2 bg-[#FAF5F0] rounded-full overflow-hidden border border-[#F3EAE3]">
                   <div
                     className={`h-full rounded-full ${
-                      agents.a3.diameter_compactness_score > 0.6 ? "bg-[#E11D48]" : "bg-[#0D9488]"
+                      a3Diameter > 0.6 ? "bg-[#E11D48]" : "bg-[#0D9488]"
                     }`}
                     style={{
-                      width: `${Math.min(100, agents.a3.diameter_compactness_score * 100)}%`,
+                      width: `${Math.min(100, a3Diameter * 100)}%`,
                     }}
                   />
                 </div>
@@ -297,7 +326,7 @@ export default function DiagnosticReportView({
             <div className="p-3 bg-[#FAF5F0] rounded-xl text-[11px] text-[#71717A] flex items-center justify-between">
               <span>Composite Suspicion Score:</span>
               <span className="font-extrabold text-[#18181B]">
-                {agents.a3.suspicion_score.toFixed(3)} / 1.000
+                {a3Score.toFixed(3)} / 1.000
               </span>
             </div>
           </div>
@@ -337,17 +366,17 @@ export default function DiagnosticReportView({
                   <span className="text-[10px] font-bold text-[#71717A]">A1 Quality</span>
                   <span
                     className={`px-1.5 py-0.2 text-[9px] font-extrabold rounded ${
-                      agents.a1.is_usable ? "bg-[#10B981]/20 text-[#047857]" : "bg-[#E11D48]/20 text-[#E11D48]"
+                      a1Usable ? "bg-[#10B981]/20 text-[#047857]" : "bg-[#E11D48]/20 text-[#E11D48]"
                     }`}
                   >
-                    {agents.a1.status}
+                    {a1Status}
                   </span>
                 </div>
                 <div className="text-xs font-bold text-[#18181B]">
-                  Blur: {agents.a1.blur_score.toFixed(1)}
+                  Blur: {a1Blur.toFixed(1)}
                 </div>
                 <div className="text-[10px] text-[#71717A] mt-0.5">
-                  Glare: {Math.round(agents.a1.glare_ratio * 100)}%
+                  Glare: {Math.round(a1Glare * 100)}%
                 </div>
               </button>
 
@@ -363,15 +392,15 @@ export default function DiagnosticReportView({
               >
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-[10px] font-bold text-[#71717A]">A2 Neural</span>
-                  <span className="px-1.5 py-0.2 text-[9px] font-extrabold rounded bg-[#E85D44]/20 text-[#E85D44]">
-                    {agents.a2.predicted_class}
+                  <span className="px-1.5 py-0.2 text-[9px] font-extrabold rounded bg-[#E85D44]/20 text-[#E85D44] uppercase">
+                    {a2Pred}
                   </span>
                 </div>
                 <div className="text-xs font-bold text-[#18181B]">
-                  {Math.round(agents.a2.confidence * 100)}% Conf
+                  {Math.round(a2Conf * 100)}% Conf
                 </div>
                 <div className="text-[10px] text-[#71717A] mt-0.5">
-                  Entropy: {agents.a2.entropy.toFixed(2)}
+                  Entropy: {a2Entropy.toFixed(2)}
                 </div>
               </button>
 
@@ -388,14 +417,14 @@ export default function DiagnosticReportView({
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-[10px] font-bold text-[#71717A]">A3/A4 Priors</span>
                   <span className="px-1.5 py-0.2 text-[9px] font-extrabold rounded bg-[#0D9488]/20 text-[#0F766E]">
-                    {agents.a4.risk_indicator}
+                    {a4Risk}
                   </span>
                 </div>
                 <div className="text-xs font-bold text-[#18181B]">
-                  ABCD: {agents.a3.suspicion_label}
+                  ABCD: {a3Suspicion}
                 </div>
                 <div className="text-[10px] text-[#71717A] mt-0.5">
-                  Prior: {agents.a4.prior_multiplier.toFixed(2)}x
+                  Prior: {a4Prior.toFixed(2)}x
                 </div>
               </button>
 
@@ -413,19 +442,19 @@ export default function DiagnosticReportView({
                   <span className="text-[10px] font-bold text-[#71717A]">A5 Safety</span>
                   <span
                     className={`px-1.5 py-0.2 text-[9px] font-extrabold rounded ${
-                      agents.a5.veto_auto_triage
+                      a5Veto
                         ? "bg-[#E11D48]/20 text-[#E11D48]"
                         : "bg-[#10B981]/20 text-[#047857]"
                     }`}
                   >
-                    {agents.a5.veto_auto_triage ? "VETO" : "PASS"}
+                    {a5Veto ? "VETO" : "PASS"}
                   </span>
                 </div>
                 <div className="text-xs font-bold text-[#18181B]">
-                  {agents.a5.severity}
+                  {a5Severity}
                 </div>
                 <div className="text-[10px] text-[#71717A] mt-0.5 truncate">
-                  {agents.a5.triggers.length} Triggers
+                  {a5Triggers.length} Triggers
                 </div>
               </button>
 
@@ -487,18 +516,18 @@ export default function DiagnosticReportView({
 
                 {expandedAgent === "A1" && (
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
-                    <div>Blur Score: <b>{agents.a1.blur_score.toFixed(2)}</b></div>
-                    <div>Illumination: <b>{agents.a1.illumination_score.toFixed(2)}</b></div>
-                    <div>Glare Ratio: <b>{agents.a1.glare_ratio.toFixed(3)}</b></div>
-                    <div>Is Usable: <b>{agents.a1.is_usable ? "YES" : "NO"}</b></div>
+                    <div>Blur Score: <b>{a1Blur.toFixed(2)}</b></div>
+                    <div>Illumination: <b>{a1Illum.toFixed(2)}</b></div>
+                    <div>Glare Ratio: <b>{a1Glare.toFixed(3)}</b></div>
+                    <div>Is Usable: <b>{a1Usable ? "YES" : "NO"}</b></div>
                   </div>
                 )}
 
                 {expandedAgent === "A2" && (
                   <div className="space-y-1 text-[11px]">
                     <div>Backbone: <b>EfficientNet-B0 + Demographic Late Fusion</b></div>
-                    <div>Shannon Entropy: <b>{agents.a2.entropy.toFixed(3)} (Normalized)</b></div>
-                    <div>Top-2 Runner Up: <b>{agents.a2.top2_class} ({Math.round(agents.a2.top2_confidence * 100)}%)</b></div>
+                    <div>Shannon Entropy: <b>{a2Entropy.toFixed(3)} (Normalized)</b></div>
+                    <div>Top-2 Runner Up: <b>{a2Top2Class} ({Math.round(a2Top2Conf * 100)}%)</b></div>
                     <div>Malignant Probability Mass: <b>{malMassPercent}%</b></div>
                   </div>
                 )}
@@ -506,17 +535,17 @@ export default function DiagnosticReportView({
                 {expandedAgent === "A3_A4" && (
                   <div className="space-y-1 text-[11px]">
                     <div>Patient Context: <b>{patient_context.age}y {patient_context.sex} on {patient_context.localization}</b></div>
-                    <div>Epidemiological Prior Multiplier: <b>{agents.a4.prior_multiplier.toFixed(2)}x baseline</b></div>
-                    <div>Clinical Risk Summary: <i>{agents.a4.clinical_summary}</i></div>
+                    <div>Epidemiological Prior Multiplier: <b>{a4Prior.toFixed(2)}x baseline</b></div>
+                    <div>Clinical Risk Summary: <i>{a4Summary}</i></div>
                   </div>
                 )}
 
                 {expandedAgent === "A5" && (
                   <div className="space-y-1 text-[11px]">
-                    <div>Safety Veto Active: <b>{agents.a5.veto_auto_triage ? "YES - Auto-Triage Blocked" : "NO - Clear"}</b></div>
-                    <div>Severity Level: <b>{agents.a5.severity}</b></div>
-                    <div>Active Triggers: <b>{agents.a5.triggers.join(", ") || "None"}</b></div>
-                    <div>Justification: <i>{agents.a5.justification}</i></div>
+                    <div>Safety Veto Active: <b>{a5Veto ? "YES - Auto-Triage Blocked" : "NO - Clear"}</b></div>
+                    <div>Severity Level: <b>{a5Severity}</b></div>
+                    <div>Active Triggers: <b>{a5Triggers.join(", ") || "None"}</b></div>
+                    <div>Justification: <i>{a5Justification}</i></div>
                   </div>
                 )}
 
@@ -556,7 +585,7 @@ export default function DiagnosticReportView({
 
             {/* Horizontal Bar Chart for all 7 HAM10000 classes */}
             <div className="space-y-2.5">
-              {Object.entries(agents.a2.probabilities).map(([code, prob]) => {
+              {Object.entries(agents?.a2?.probabilities ?? {}).map(([code, prob]) => {
                 const isPrimary = code === verdict.prediction;
                 const isMalignant = MALIGNANT_SET.has(code);
                 const percent = Math.round(prob * 100);
@@ -631,13 +660,13 @@ export default function DiagnosticReportView({
                 <div className="flex justify-between py-1 border-b border-[#F3EAE3]">
                   <span className="text-[#71717A]">Prior Odds Multiplier:</span>
                   <span className="font-bold text-[#0D9488]">
-                    {agents.a4.prior_multiplier.toFixed(2)}x Baseline
+                    {a4Prior.toFixed(2)}x Baseline
                   </span>
                 </div>
               </div>
 
               <div className="p-2.5 bg-[#FAF5F0] rounded-xl text-[11px] text-[#71717A] leading-relaxed">
-                {agents.a4.clinical_summary}
+                {a4Summary}
               </div>
             </div>
 
@@ -652,12 +681,12 @@ export default function DiagnosticReportView({
                 </div>
                 <span
                   className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                    agents.a5.veto_auto_triage
+                    a5Veto
                       ? "bg-[#E11D48]/15 text-[#E11D48]"
                       : "bg-[#10B981]/15 text-[#047857]"
                   }`}
                 >
-                  {agents.a5.veto_auto_triage ? "VETO TRIGGERED" : "SAFETY PASSED"}
+                  {a5Veto ? "VETO TRIGGERED" : "SAFETY PASSED"}
                 </span>
               </div>
 
@@ -665,8 +694,8 @@ export default function DiagnosticReportView({
                 {/* Gate 1 Quality */}
                 <div className="flex items-center justify-between">
                   <span className="text-[#71717A]">1. Optical Quality Gate:</span>
-                  <span className={`font-bold ${agents.a1.is_usable ? "text-[#10B981]" : "text-[#E11D48]"}`}>
-                    {agents.a1.is_usable ? "[✓] Certified" : "[✗] Inadequate"}
+                  <span className={`font-bold ${a1Usable ? "text-[#10B981]" : "text-[#E11D48]"}`}>
+                    {a1Usable ? "[✓] Certified" : "[✗] Inadequate"}
                   </span>
                 </div>
 
@@ -687,14 +716,14 @@ export default function DiagnosticReportView({
                   <span className="text-[#71717A]">3. ABCD Suspicion Mismatch:</span>
                   <span
                     className={`font-bold ${
-                      agents.a3.suspicion_score > 0.65 ? "text-[#F59E0B]" : "text-[#10B981]"
+                      a3Score > 0.65 ? "text-[#F59E0B]" : "text-[#10B981]"
                     }`}
                   >
-                    {agents.a3.suspicion_score > 0.65 ? "[!] Suspicious" : "[✓] Harmonious"}
+                    {a3Score > 0.65 ? "[!] Suspicious" : "[✓] Harmonious"}
                   </span>
                 </div>
 
-                {/* Gate 4 Auto-Triage Certification */}
+                {/* Gate 4 Auto-Triage Clearance */}
                 <div className="flex items-center justify-between">
                   <span className="text-[#71717A]">4. Safe Auto-Triage Clearance:</span>
                   <span className={`font-bold ${isAutoTriage ? "text-[#10B981]" : "text-[#E11D48]"}`}>

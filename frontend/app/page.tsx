@@ -296,6 +296,7 @@ export default function Home() {
             sex_factor: 1.05,
             localization_factor: 1.10,
             prior_multiplier: isMel ? 1.45 : 0.85,
+            malignancy_prior_multiplier: isMel ? 1.45 : 0.85,
             risk_indicator: isMel ? "HIGH" : "LOW",
             clinical_summary: `${patientContext.age}y ${patientContext.sex} presentation with lesion located on ${patientContext.localization}. Prior malignancy odds ratio: ${
               isMel ? "1.45x" : "0.85x"

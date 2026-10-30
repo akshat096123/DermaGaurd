@@ -46,21 +46,26 @@ export interface Agent2Diagnosis {
 export interface Agent3Lesion {
   asymmetry_score: number;
   border_irregularity_score: number;
-  color_variegation_score: number;
-  diameter_compactness_score: number;
+  color_variegation_score?: number;
+  color_variation_score?: number;
+  diameter_compactness_score?: number;
+  lesion_area_ratio?: number;
   suspicion_score: number;
-  suspicion_label: "LOW" | "MODERATE" | "HIGH";
-  dominant_colors: string[];
+  suspicion_label: "LOW" | "MODERATE" | "SUSPICIOUS" | "HIGH";
+  dominant_colors?: string[];
+  distinct_color_zones?: string[];
   geometry_details?: Record<string, any>;
 }
 
 export interface Agent4Context {
-  age_factor: number;
-  sex_factor: number;
-  localization_factor: number;
-  prior_multiplier: number;
-  risk_indicator: "LOW" | "MODERATE" | "HIGH";
-  clinical_summary: string;
+  age_factor?: number;
+  sex_factor?: number;
+  localization_factor?: number;
+  prior_multiplier?: number;
+  malignancy_prior_multiplier?: number;
+  risk_indicator: "LOW" | "MODERATE" | "ELEVATED" | "HIGH";
+  clinical_summary?: string;
+  context_evidence?: string[];
 }
 
 export interface Agent5Safety {

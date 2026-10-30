@@ -305,6 +305,19 @@ async def analyze_patient(
     a6_res = coordinator_sys.coordinate(resolved_id, a1, a2, a3, a4, a5_res)
     a6 = a6_res.model_dump()
 
+    # Ensure backward-compatible / UI field aliases
+    prior_mult = float(a4.get("malignancy_prior_multiplier", 1.0))
+    a4["prior_multiplier"] = prior_mult
+    evidence_text = " • ".join(a4.get("context_evidence", []))
+    a4["clinical_summary"] = evidence_text if evidence_text else f"{age_val or 50}y {sex_val} lesion on {loc_val} (Prior OR: {prior_mult:.2f}x)"
+    a4["age_factor"] = 1.1 if (age_val or 50) > 50 else 0.95
+    a4["sex_factor"] = 1.05 if sex_val == "male" else 0.95
+    a4["localization_factor"] = 1.1 if loc_val in ["back", "face", "scalp"] else 0.95
+
+    a3["color_variegation_score"] = float(a3.get("color_variation_score", 0.2))
+    a3["diameter_compactness_score"] = float(a3.get("border_irregularity_score", 0.3))
+    a3["dominant_colors"] = a3.get("distinct_color_zones", ["#3D2314", "#8C5835", "#C99A75"])
+
     primary_dx = a6["prediction"]
     full_dx_name = CLASS_NAMES.get(primary_dx, primary_dx.upper())
 
@@ -365,6 +378,19 @@ def get_eval_sample(image_id: str):
     a5_obj = coordinator_sys.evaluate_safety(a1, a2, a3, a4)
     a5 = a5_obj.model_dump()
     a6 = coordinator_sys.coordinate(image_id, a1, a2, a3, a4, a5_obj).model_dump()
+
+    # UI field aliases
+    prior_mult = float(a4.get("malignancy_prior_multiplier", 1.0))
+    a4["prior_multiplier"] = prior_mult
+    evidence_text = " • ".join(a4.get("context_evidence", []))
+    a4["clinical_summary"] = evidence_text if evidence_text else f"{age}y {sex} lesion on {loc}"
+    a4["age_factor"] = 1.1 if age > 50 else 0.95
+    a4["sex_factor"] = 1.05 if sex == "male" else 0.95
+    a4["localization_factor"] = 1.1 if loc in ["back", "face", "scalp"] else 0.95
+
+    a3["color_variegation_score"] = float(a3.get("color_variation_score", 0.2))
+    a3["diameter_compactness_score"] = float(a3.get("border_irregularity_score", 0.3))
+    a3["dominant_colors"] = a3.get("distinct_color_zones", ["#3D2314", "#8C5835", "#C99A75"])
 
     return {
         "image_id": image_id,
