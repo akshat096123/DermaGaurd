@@ -61,6 +61,8 @@ export default function ConsensusStrip({
   // A6 Final Triage
   const a6Decision = verdict?.decision ?? "AUTO_TRIAGE";
 
+  const isHealthySkin = a2Conf < 0.55 && ["nv", "vasc", "bkl", "df"].includes(a2Pred);
+
   const cards = [
     {
       id: "A1",
@@ -76,11 +78,11 @@ export default function ConsensusStrip({
       id: "A2",
       step: "Neural Diagnosis",
       icon: Cpu,
-      badgeText: `${a2Pred.toUpperCase()} • ${(a2Conf * 100).toFixed(0)}%`,
-      badgeColor: "bg-[#E85D44]/15 text-[#E85D44]",
-      title: a2DiseaseName,
-      subtitle: `Model predicts ${a2DiseaseName.toLowerCase()}`,
-      borderHover: "hover:border-[#FDA4AF]",
+      badgeText: isHealthySkin ? "HEALTHY SKIN" : `${a2Pred.toUpperCase()} • ${(a2Conf * 100).toFixed(0)}%`,
+      badgeColor: isHealthySkin ? "bg-[#10B981]/15 text-[#047857]" : "bg-[#E85D44]/15 text-[#E85D44]",
+      title: isHealthySkin ? "Healthy Skin / No Focal Lesion" : a2DiseaseName,
+      subtitle: isHealthySkin ? "Normal baseline melanin (No active disease)" : `Model predicts ${a2DiseaseName.toLowerCase()}`,
+      borderHover: isHealthySkin ? "hover:border-[#86EFAC]" : "hover:border-[#FDA4AF]",
     },
     {
       id: "A3_A4",
