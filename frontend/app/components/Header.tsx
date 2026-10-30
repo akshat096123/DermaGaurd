@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Shield, Stethoscope, Activity } from "lucide-react";
+import { Shield, Stethoscope, Activity, Upload } from "lucide-react";
 import { ActiveView } from "../types";
 
 interface HeaderProps {
@@ -17,9 +17,15 @@ export default function Header({
 }: HeaderProps) {
   const navItems = [
     {
-      id: "screening" as ActiveView,
-      label: "New Patient Screening",
-      desc: "Intake & 6-Agent Report",
+      id: "upload" as ActiveView,
+      label: "1. Image Upload",
+      desc: "Dermoscopy Acquisition",
+      icon: Upload,
+    },
+    {
+      id: "diagnosis" as ActiveView,
+      label: "2. Clinical Diagnostics",
+      desc: "Verification & Report",
       icon: Stethoscope,
     },
     {
@@ -36,7 +42,7 @@ export default function Header({
         {/* Brand Mark */}
         <div
           className="flex items-center gap-3 cursor-pointer select-none group"
-          onClick={() => onSelectView("screening")}
+          onClick={() => onSelectView("upload")}
         >
           <div className="relative flex items-center justify-center w-11 h-11 rounded-2xl bg-gradient-to-br from-[#E85D44] via-[#F27059] to-[#D4472E] text-white shadow-md shadow-[#E85D44]/25 group-hover:scale-105 transition-transform">
             <Shield className="w-5 h-5 text-white" />
@@ -89,23 +95,6 @@ export default function Header({
           })}
         </nav>
 
-        {/* Active Doctor Profile Badge */}
-        <div className="hidden lg:flex items-center gap-3 pl-2 border-l border-[#F2E8E3]">
-          <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-white border border-[#F2E8E3] shadow-sm">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#FAF4F0] to-[#FCEAE3] border border-[#E85D44]/30 flex items-center justify-center text-[#E85D44] font-extrabold text-xs">
-              MV
-            </div>
-            <div className="text-left pr-1">
-              <div className="text-xs font-bold text-[#18181B] leading-none flex items-center gap-1.5">
-                <span>Dr. Marcus Vance, MD</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
-              </div>
-              <span className="text-[10px] text-[#78716C] font-medium leading-none block mt-0.5">
-                Lead Dermatologist • St. Jude Memorial
-              </span>
-            </div>
-          </div>
-        </div>
       </div>
     </header>
   );

@@ -1,4 +1,4 @@
-export type ActiveView = "screening" | "analytics";
+export type ActiveView = "upload" | "diagnosis" | "analytics";
 export type ActiveStage = "screening" | "analytics" | "intake" | "report";
 
 export interface PresetCase {

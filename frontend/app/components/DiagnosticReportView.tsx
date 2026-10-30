@@ -106,7 +106,7 @@ export default function DiagnosticReportView({
       <div className="flex items-center justify-between pb-2 border-b border-[#F2E8E3]">
         <div>
           <span className="text-[11px] font-bold text-[#E85D44] uppercase tracking-wider block">
-            Section C • Comprehensive 6-Agent Diagnostic Report
+            Section C • Comprehensive Multi-Agent Diagnostic Report
           </span>
           <h2 className="text-xl font-extrabold text-[#18181B] tracking-tight">
             Specialist Module Evidentiary Breakdown
@@ -130,7 +130,7 @@ export default function DiagnosticReportView({
                 </div>
                 <div>
                   <h3 className="text-xs font-extrabold text-[#18181B] uppercase tracking-wider">
-                    Agent 1 • Optical Quality
+                    Optical Quality Assessment
                   </h3>
                   <span className="text-[11px] text-[#78716C]">Physics-Based Certification</span>
                 </div>
@@ -237,7 +237,7 @@ export default function DiagnosticReportView({
                 </div>
                 <div>
                   <h3 className="text-xs font-extrabold text-[#18181B] uppercase tracking-wider">
-                    Agent 2 • Differential Diagnosis
+                    Differential Diagnosis
                   </h3>
                   <span className="text-[11px] text-[#78716C]">EfficientNet-B0 Multi-Modal</span>
                 </div>
@@ -310,7 +310,7 @@ export default function DiagnosticReportView({
                 </div>
                 <div>
                   <h3 className="text-xs font-extrabold text-[#18181B] uppercase tracking-wider">
-                    Agent 3 • ABCD Morphometry
+                    ABCD Morphometry
                   </h3>
                   <span className="text-[11px] text-[#78716C]">Dermoscopic Geometry</span>
                 </div>
@@ -408,7 +408,7 @@ export default function DiagnosticReportView({
                 </div>
                 <div>
                   <h3 className="text-xs font-extrabold text-[#18181B] uppercase tracking-wider">
-                    Agent 4 • Epidemiological Context
+                    Epidemiological Context
                   </h3>
                   <span className="text-[11px] text-[#78716C]">Demographic Prior Reasoning</span>
                 </div>
@@ -491,7 +491,7 @@ export default function DiagnosticReportView({
                 </div>
                 <div>
                   <h3 className="text-xs font-extrabold text-[#18181B] uppercase tracking-wider">
-                    Agent 5 • Clinical Safety Gate
+                    Clinical Safety Gate
                   </h3>
                   <span className="text-[11px] text-[#78716C]">Deterministic Safety Veto</span>
                 </div>
@@ -570,7 +570,7 @@ export default function DiagnosticReportView({
                 </div>
                 <div>
                   <h3 className="text-xs font-extrabold text-[#18181B] uppercase tracking-wider">
-                    Agent 6 • Coordinator Disposition
+                    Chief Coordinator Disposition
                   </h3>
                   <span className="text-[11px] text-[#E85D44] font-bold">Primary Clinical Action</span>
                 </div>

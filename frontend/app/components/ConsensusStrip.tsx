@@ -64,7 +64,7 @@ export default function ConsensusStrip({
   const cards = [
     {
       id: "A1",
-      step: "A1 • Optical Quality",
+      step: "Optical Quality",
       icon: Camera,
       badgeText: a1Status,
       badgeColor: a1Usable ? "bg-[#10B981]/15 text-[#047857]" : "bg-[#E11D48]/15 text-[#E11D48]",
@@ -74,7 +74,7 @@ export default function ConsensusStrip({
     },
     {
       id: "A2",
-      step: "A2 • Neural Diagnosis",
+      step: "Neural Diagnosis",
       icon: Cpu,
       badgeText: `${a2Pred.toUpperCase()} • ${(a2Conf * 100).toFixed(0)}%`,
       badgeColor: "bg-[#E85D44]/15 text-[#E85D44]",
@@ -84,7 +84,7 @@ export default function ConsensusStrip({
     },
     {
       id: "A3_A4",
-      step: "A3 + A4 • Lesion & Context",
+      step: "Morphology & Context",
       icon: Sliders,
       badgeText: isA3A4Suspicious ? "SUSPICIOUS" : "LOW RISK",
       badgeColor: isA3A4Suspicious ? "bg-[#F59E0B]/15 text-[#B45309]" : "bg-[#10B981]/15 text-[#047857]",
@@ -94,7 +94,7 @@ export default function ConsensusStrip({
     },
     {
       id: "A5",
-      step: "A5 • Clinical Safety Gate",
+      step: "Safety Guardrail",
       icon: ShieldCheck,
       badgeText: a5Veto || a5Conflict ? "SAFETY FLAG" : "CLEAR",
       badgeColor: a5Veto || a5Conflict ? "bg-[#E11D48]/15 text-[#E11D48]" : "bg-[#10B981]/15 text-[#047857]",
@@ -104,7 +104,7 @@ export default function ConsensusStrip({
     },
     {
       id: "A6",
-      step: "A6 • Triage Disposition",
+      step: "Triage Disposition",
       icon: ArrowRightCircle,
       badgeText: a6Decision,
       badgeColor:

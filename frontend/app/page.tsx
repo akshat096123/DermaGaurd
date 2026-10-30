@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Header from "./components/Header";
-import PatientIntakeCard from "./components/PatientIntakeCard";
+import ImageUploadCard from "./components/ImageUploadCard";
+import PatientClinicalProfileCard from "./components/PatientClinicalProfileCard";
 import ConsensusStrip from "./components/ConsensusStrip";
 import DiagnosticReportView from "./components/DiagnosticReportView";
 import ClinicalAuditAnalyticsView from "./components/ClinicalAuditAnalyticsView";
@@ -13,7 +14,7 @@ import {
   PresetCase,
   AnalysisResponse,
 } from "./types";
-import { Sparkles, ArrowDown, Activity } from "lucide-react";
+import { Sparkles, ArrowDown, Activity, Upload, ArrowRight } from "lucide-react";
 
 const CLINICAL_PRESETS: PresetCase[] = [
   {
@@ -108,7 +109,7 @@ const CLINICAL_PRESETS: PresetCase[] = [
 ];
 
 export default function Home() {
-  const [activeView, setActiveView] = useState<ActiveView>("screening");
+  const [activeView, setActiveView] = useState<ActiveView>("upload");
   const [isBackendConnected, setIsBackendConnected] = useState<boolean>(false);
   const [presets, setPresets] = useState<PresetCase[]>(CLINICAL_PRESETS);
 
@@ -337,12 +338,16 @@ export default function Home() {
     }
   };
 
+  // Handle Verification on Page 1 -> automatically transitions to Page 2 for further processing
+  const handleVerify = async () => {
+    if (!selectedImageUrl) return;
+    setActiveView("diagnosis");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    await handleStartAnalysis();
+  };
+
   const handleModalComplete = () => {
     setIsVerificationModalOpen(false);
-    // Smooth scroll down to the clinical consensus strip
-    setTimeout(() => {
-      reportSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 150);
   };
 
   return (
@@ -363,38 +368,53 @@ export default function Home() {
 
       {/* Main Workspace Container */}
       <main className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-8 overflow-x-hidden">
-        {activeView === "screening" ? (
-          <>
-            {/* SECTION A: Patient Intake & Dermoscopy Capture (Top 2-Column Bento Card) */}
-            <section aria-label="Patient Intake and Dermoscopy Capture">
-              <PatientIntakeCard
-                patientContext={patientContext}
-                onChangeContext={setPatientContext}
-                selectedImageUrl={selectedImageUrl}
-                selectedImageId={selectedImageId}
-                selectedImageFile={selectedImageFile}
-                onSelectImageFile={handleSelectImageFile}
-                onSelectPreset={handleSelectPreset}
-                onCameraCapture={handleCameraCapture}
-                presets={presets}
-                onStartAnalysis={handleStartAnalysis}
-                isLoading={isLoading}
-              />
-            </section>
-
+        {activeView === "upload" ? (
+          /* PAGE 1: Solely for Dermoscopy Image Uploadation */
+          <section aria-label="Page 1: Dermoscopy Image Uploadation">
+            <ImageUploadCard
+              selectedImageUrl={selectedImageUrl}
+              selectedImageId={selectedImageId}
+              selectedImageFile={selectedImageFile}
+              onSelectImageFile={handleSelectImageFile}
+              onSelectPreset={handleSelectPreset}
+              onCameraCapture={handleCameraCapture}
+              presets={presets}
+              onVerify={handleVerify}
+              isLoading={isLoading}
+            />
+          </section>
+        ) : activeView === "diagnosis" ? (
+          /* PAGE 2: Clinical Diagnostics & Specialist Multi-Agent Verification Report */
+          <section aria-label="Page 2: Clinical Diagnostics and Multi-Agent Evaluation" className="space-y-8">
             {/* Assessment In Progress Indicator */}
             {isLoading && (
               <div className="flex items-center justify-center p-8 rounded-2xl bg-white border border-[#F2E8E3] shadow-sm animate-pulse text-[#78716C] gap-3">
                 <Activity className="w-5 h-5 text-[#E85D44] animate-spin" />
                 <span className="text-sm font-semibold text-[#18181B]">
-                  Running 6-Agent Clinical Diagnostic Pipeline...
+                  Running Specialist Multi-Agent Diagnostic Pipeline...
                 </span>
               </div>
             )}
 
-            {/* SECTIONS B & C: Clinical Consensus Strip & 6-Agent Diagnostic Report */}
-            {activeReport && (
-              <div ref={reportSectionRef} className="space-y-8 pt-2">
+            {/* If activeReport exists: Patient Clinical Profile, Consensus Strip, and Diagnostic Report */}
+            {activeReport ? (
+              <div ref={reportSectionRef} className="space-y-8">
+                {/* Section A: Patient Demographic Clinical Profile & Prior Recalibration */}
+                <section aria-label="Patient Demographic Context">
+                  <PatientClinicalProfileCard
+                    patientContext={patientContext}
+                    onChangeContext={setPatientContext}
+                    selectedImageUrl={selectedImageUrl}
+                    selectedImageId={selectedImageId}
+                    onBackToUpload={() => {
+                      setActiveView("upload");
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                    onRecalibrate={handleStartAnalysis}
+                    isLoading={isLoading}
+                  />
+                </section>
+
                 {/* Section B: 5-Stage Clinical Consensus Strip */}
                 <section aria-label="5-Stage Clinical Consensus Strip">
                   <div className="flex items-center justify-between mb-3 px-1">
@@ -414,57 +434,60 @@ export default function Home() {
                   <ConsensusStrip report={activeReport} />
                 </section>
 
-                {/* Section C: Comprehensive 6-Agent Diagnostic Report (2x3 Bento Grid) */}
-                <section aria-label="Comprehensive 6-Agent Diagnostic Report">
+                {/* Section C: Comprehensive Specialist Diagnostic Report */}
+                <section aria-label="Comprehensive Multi-Agent Diagnostic Report">
                   <DiagnosticReportView
                     report={activeReport}
                     onNewScan={() => {
+                      setActiveView("upload");
                       window.scrollTo({ top: 0, behavior: "smooth" });
                     }}
                   />
                 </section>
               </div>
-            )}
-
-            {/* Prompt for First-Time Users if no report generated yet */}
-            {!activeReport && !isLoading && (
-              <div className="p-8 rounded-[28px] bg-white border border-[#F2E8E3] shadow-[0_8px_24px_rgba(28,25,23,0.03)] text-center max-w-2xl mx-auto">
-                <div className="w-12 h-12 rounded-2xl bg-[#E85D44]/10 text-[#E85D44] flex items-center justify-center mx-auto mb-4">
-                  <Sparkles className="w-6 h-6" />
+            ) : !isLoading ? (
+              /* Empty state if user clicked directly on Page 2 without verifying a scan */
+              <div className="p-10 rounded-[28px] bg-white border border-[#F2E8E3] shadow-[0_8px_24px_rgba(28,25,23,0.03)] text-center max-w-xl mx-auto space-y-4">
+                <div className="w-14 h-14 rounded-2xl bg-[#FAF4F0] text-[#E85D44] border border-[#F2E8E3] flex items-center justify-center mx-auto">
+                  <Upload className="w-7 h-7" />
                 </div>
-                <h3 className="text-lg font-bold text-[#18181B] mb-1.5">
-                  Ready for Clinical Assessment
-                </h3>
-                <p className="text-xs text-[#78716C] leading-relaxed mb-4">
-                  Select any of the 5 curated patient cases above or upload a patient dermoscopic scan,
-                  configure demographic context, and click{" "}
-                  <strong className="text-[#18181B] font-semibold">
-                    "Run Multi-Agent Clinical Assessment"
-                  </strong>{" "}
-                  to execute the full 6-agent diagnostic consensus.
-                </p>
-                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#FAF4F0] border border-[#F2E8E3] text-[11px] font-semibold text-[#78716C]">
-                  <span>Scroll up to begin intake</span>
-                  <ArrowDown className="w-3.5 h-3.5 text-[#E85D44] rotate-180" />
+                <div>
+                  <h3 className="text-lg font-bold text-[#18181B]">
+                    No Scan Verified Yet
+                  </h3>
+                  <p className="text-xs text-[#78716C] mt-1 leading-relaxed">
+                    Please upload or select a patient dermoscopy scan on Page 1 and click <strong>Verify</strong> to initiate multi-agent clinical evaluation.
+                  </p>
+                </div>
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setActiveView("upload")}
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#E85D44] to-[#F27059] text-white text-xs font-bold shadow-md hover:shadow-lg transition-all"
+                  >
+                    <span>Go to Page 1: Upload Scan</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
-            )}
-          </>
+            ) : null}
+          </section>
         ) : (
-          /* VIEW 2: Clinical Audit & Analytics (Hospital Quality Assurance & Validation Dashboard) */
+          /* VIEW 3: Clinical Audit & Analytics (Hospital Quality Assurance & Validation Dashboard) */
           <section aria-label="Clinical Audit and Analytics Dashboard">
             <ClinicalAuditAnalyticsView />
           </section>
         )}
       </main>
 
-      {/* 6-Agent Verification Sequence Modal */}
+      {/* Specialist Verification Sequence Modal */}
       <VerificationSequenceModal
         isOpen={isVerificationModalOpen}
         analysisResult={activeReport}
         onComplete={handleModalComplete}
         onRetake={() => {
           setIsVerificationModalOpen(false);
+          setActiveView("upload");
           window.scrollTo({ top: 0, behavior: "smooth" });
         }}
       />

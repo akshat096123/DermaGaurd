@@ -23,25 +23,25 @@ export default function VerificationSequenceModal({
   const verificationSteps = [
     {
       num: 1,
-      title: "Agent 1: Optical Sharpness & Glare Certification",
+      title: "Optical Quality & Glare Certification",
       subtitle: "Laplacian variance, specular flash ratio, and lens vignetting",
       agentCode: "A1_QUALITY",
     },
     {
       num: 2,
-      title: "Agent 2: EfficientNet-B0 Multi-Modal Inference",
+      title: "Differential Diagnosis Neural Inference",
       subtitle: "7-class probability calibration & Shannon entropy calculation",
       agentCode: "A2_NEURAL",
     },
     {
       num: 3,
-      title: "Agent 3 & 4: ABCD Morphometry & Demographic Priors",
+      title: "ABCD Morphometry & Demographic Priors",
       subtitle: "Asymmetry, border, variegation, diameter, and anatomical risk multiplier",
       agentCode: "A3_A4_FUSION",
     },
     {
       num: 4,
-      title: "Agent 5 & 6: Deterministic Safety Veto & Triage Disposition",
+      title: "Clinical Safety Gate & Triage Disposition",
       subtitle: "Autonomous triage certification or specialist clinical referral",
       agentCode: "A5_A6_COORDINATOR",
     },
@@ -115,7 +115,7 @@ export default function VerificationSequenceModal({
             </h3>
 
             <p className="text-xs text-[#71717A] max-w-sm mb-4 leading-relaxed">
-              Agent 1 optical inspection detected severe blur, flash glare, or deficient lighting. To protect patient safety, the diagnostic pipeline halted before neural inference.
+              Optical inspection detected severe blur, flash glare, or deficient lighting. To protect patient safety, the diagnostic pipeline halted before neural inference.
             </p>
 
             {/* Reasons List */}
