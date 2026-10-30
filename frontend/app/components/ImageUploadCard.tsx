@@ -42,7 +42,7 @@ export default function ImageUploadCard({
   isLoading,
 }: ImageUploadCardProps) {
   const [viewMode, setViewMode] = useState<"2d" | "3d">("2d");
-  const [isCameraModalOpen, setIsCameraModalOpen] = useState<boolean>(false);
+  const [isCameraActive, setIsCameraActive] = useState<boolean>(false);
   const [dragOver, setDragOver] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -127,23 +127,39 @@ export default function ImageUploadCard({
         </p>
       </div>
 
-      {/* Main Interactive Image Stage / Drag-and-Drop Area */}
+      {/* Main Interactive Image Stage / Drag-and-Drop Area (Live Feed Hosted Here Directly) */}
       <div
         onDragOver={(e) => {
+          if (isCameraActive) return;
           e.preventDefault();
           setDragOver(true);
         }}
         onDragLeave={() => setDragOver(false)}
-        onDrop={handleDrop}
+        onDrop={(e) => {
+          if (isCameraActive) return;
+          handleDrop(e);
+        }}
         className={`relative w-full aspect-[16/9] sm:aspect-[2/1] rounded-[24px] overflow-hidden border-2 transition-all ${
-          dragOver
+          isCameraActive
+            ? "border-[#0D9488]/40 bg-stone-950 shadow-md"
+            : dragOver
             ? "border-[#E85D44] bg-[#FCEAE3]/40"
             : selectedImageUrl
             ? "border-[#F2E8E3] bg-[#FAF4F0]"
             : "border-[#F2E8E3] border-dashed bg-[#FAF4F0]/60 hover:border-[#E85D44]/60 hover:bg-[#FCEAE3]/20"
         } flex items-center justify-center`}
       >
-        {selectedImageUrl ? (
+        {isCameraActive ? (
+          <GuidedSmartCamera
+            inline
+            onCapture={(blob, dataUrl) => {
+              onCameraCapture(blob, dataUrl);
+              setIsCameraActive(false);
+            }}
+            onClose={() => setIsCameraActive(false)}
+            className="w-full h-full"
+          />
+        ) : selectedImageUrl ? (
           viewMode === "2d" ? (
             <div className="relative w-full h-full flex items-center justify-center p-4">
               <img
@@ -227,11 +243,15 @@ export default function ImageUploadCard({
 
         <button
           type="button"
-          onClick={() => setIsCameraModalOpen(true)}
-          className="flex-1 min-w-[200px] flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-white border border-[#F2E8E3] hover:border-[#E5DCD4] text-xs font-bold text-[#18181B] shadow-sm hover:shadow transition-all"
+          onClick={() => setIsCameraActive((prev) => !prev)}
+          className={`flex-1 min-w-[200px] flex items-center justify-center gap-2 px-5 py-3 rounded-2xl border text-xs font-bold shadow-sm transition-all ${
+            isCameraActive
+              ? "bg-[#E11D48]/10 border-[#E11D48] text-[#E11D48] hover:bg-[#E11D48]/15"
+              : "bg-white border-[#F2E8E3] hover:border-[#E5DCD4] text-[#18181B] hover:shadow"
+          }`}
         >
-          <Camera className="w-4 h-4 text-[#0D9488]" />
-          <span>Smart Guided Camera</span>
+          <Camera className={`w-4 h-4 ${isCameraActive ? "text-[#E11D48]" : "text-[#0D9488]"}`} />
+          <span>{isCameraActive ? "Close Live Camera" : "Smart Guided Camera"}</span>
         </button>
       </div>
 
@@ -327,16 +347,6 @@ export default function ImageUploadCard({
         </p>
       </div>
 
-      {/* Guided Smart Camera Modal */}
-      {isCameraModalOpen && (
-        <GuidedSmartCamera
-          onCapture={(blob, dataUrl) => {
-            onCameraCapture(blob, dataUrl);
-            setIsCameraModalOpen(false);
-          }}
-          onClose={() => setIsCameraModalOpen(false)}
-        />
-      )}
     </div>
   );
 }

@@ -260,6 +260,19 @@ export default function DiagnosticReportView({
               </span>
             </div>
 
+            {/* Low Confidence / Non-Focal Lesion Advisory */}
+            {a2Conf < 0.55 && (
+              <div className="p-3 rounded-2xl bg-[#FFFBEB] border border-[#FDE68A] text-[#B45309] text-[11px] mb-3 space-y-1">
+                <div className="flex items-center gap-1.5 font-bold">
+                  <AlertTriangle className="w-3.5 h-3.5 text-[#F59E0B] shrink-0" />
+                  <span>Diffuse / Low Diagnostic Confidence ({Math.round(a2Conf * 100)}%)</span>
+                </div>
+                <p className="leading-tight text-[10px] text-[#92400E]">
+                  No distinct focal dermoscopic lesion detected. For macro photos of plain skin or healthy hands, closed-set dermoscopy models disperse probabilities across natural melanin pigment (NV: {Math.round((a2Probs.nv || 0) * 100)}%) and capillary erythema (VASC: {Math.round((a2Probs.vasc || 0) * 100)}%). Gate 2 safety veto was automatically triggered.
+                </p>
+              </div>
+            )}
+
             {/* Clean Horizontal Probability Distribution for All 7 Conditions */}
             <div className="space-y-1.5">
               <span className="text-[10px] font-extrabold text-[#78716C] uppercase tracking-wider block">

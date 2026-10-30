@@ -34,12 +34,14 @@ interface GuidedSmartCameraProps {
   onCapture: (blob: Blob, dataUrl: string) => void;
   onClose?: () => void;
   className?: string;
+  inline?: boolean;
 }
 
 export default function GuidedSmartCamera({
   onCapture,
   onClose,
   className = "",
+  inline = false,
 }: GuidedSmartCameraProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -445,12 +447,12 @@ export default function GuidedSmartCamera({
   const strokeDashoffset = circumference - (telemetry.lockPercent / 100) * circumference;
 
   return (
-    <div className={`relative w-full flex flex-col items-center select-none ${className}`}>
+    <div className={`relative w-full ${inline ? "h-full" : ""} flex flex-col items-center select-none ${className}`}>
       {/* Hidden processing canvas */}
       <canvas ref={canvasRef} className="hidden" />
 
-      {/* Main Viewfinder Frame (Constrained aspect-[16/10] max-h-[360px] to prevent vertical scrolling) */}
-      <div className="relative w-full aspect-[16/10] max-h-[360px] bg-stone-900 rounded-[24px] overflow-hidden shadow-inner border-2 border-white/80">
+      {/* Main Viewfinder Frame */}
+      <div className={`relative w-full ${inline ? "h-full rounded-[22px]" : "aspect-[16/10] max-h-[360px] rounded-[24px] border-2 border-white/80"} bg-stone-900 overflow-hidden shadow-inner`}>
         {hasPermission === false ? (
           <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center bg-[#FAF5F0]">
             <div className="w-12 h-12 rounded-2xl bg-[#E85D44]/10 text-[#E85D44] flex items-center justify-center mb-3">
@@ -460,14 +462,25 @@ export default function GuidedSmartCamera({
             <p className="text-xs text-[#71717A] max-w-sm mb-4 leading-relaxed">
               {errorMessage || "Webcam access is unavailable or denied in your browser."}
             </p>
-            <button
-              type="button"
-              onClick={startCamera}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-[#E85D44] hover:bg-[#D4472E] text-white rounded-xl text-xs font-bold transition-all shadow-sm"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-              Retry Camera Permission
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={startCamera}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-[#E85D44] hover:bg-[#D4472E] text-white rounded-xl text-xs font-bold transition-all shadow-sm"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                Retry Camera Permission
+              </button>
+              {onClose && (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-4 py-2 bg-stone-200 hover:bg-stone-300 text-[#18181B] rounded-xl text-xs font-bold transition-all"
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
           </div>
         ) : (
           <>
@@ -536,7 +549,7 @@ export default function GuidedSmartCamera({
             </div>
 
             {/* Top Quality Status Banner */}
-            <div className="absolute top-2.5 inset-x-3 flex items-center justify-between gap-2 pointer-events-none">
+            <div className="absolute top-2.5 inset-x-3 flex items-center justify-between gap-2 pointer-events-none z-10">
               <div
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-full backdrop-blur-md text-xs font-bold transition-all shadow-md ${
                   telemetry.isOptimal
@@ -559,8 +572,8 @@ export default function GuidedSmartCamera({
               )}
             </div>
 
-            {/* Bottom Floating Telemetry Pills (Live Stage 1–5 metrics) */}
-            <div className="absolute bottom-2.5 inset-x-3 flex items-center justify-center gap-1.5 sm:gap-2 pointer-events-none flex-wrap">
+            {/* Floating Telemetry Pills (Live Stage 1–5 metrics) */}
+            <div className={`absolute ${inline ? "bottom-14" : "bottom-2.5"} inset-x-3 flex items-center justify-center gap-1.5 sm:gap-2 pointer-events-none flex-wrap z-10`}>
               <span
                 className={`px-2 py-0.5 rounded-md backdrop-blur-md text-[10px] font-bold ${
                   telemetry.isSkinOk ? "bg-[#10B981]/80 text-white" : "bg-[#E11D48]/80 text-white"
@@ -594,53 +607,94 @@ export default function GuidedSmartCamera({
               </span>
             </div>
 
+            {/* Inline Camera Controls (Rendered directly inside the viewfinder) */}
+            {inline && (
+              <div className="absolute bottom-2.5 inset-x-3 flex items-center justify-between gap-2 z-20">
+                <label className="flex items-center gap-1.5 cursor-pointer select-none text-[11px] font-bold text-white bg-black/65 hover:bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/15 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={autoCapture}
+                    onChange={(e) => setAutoCapture(e.target.checked)}
+                    className="w-3.5 h-3.5 rounded text-[#E85D44] focus:ring-[#E85D44] accent-[#E85D44]"
+                  />
+                  <span className="flex items-center gap-1">
+                    <Zap className="w-3 h-3 text-[#E85D44]" />
+                    Auto-Capture
+                  </span>
+                </label>
+
+                <div className="flex items-center gap-2">
+                  {onClose && (
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="px-3.5 py-1.5 rounded-xl bg-black/60 hover:bg-black/80 backdrop-blur-md border border-white/15 text-white text-[11px] font-bold transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={triggerCapture}
+                    disabled={isCapturing}
+                    className="flex items-center gap-1.5 px-4 py-1.5 bg-gradient-to-r from-[#E85D44] to-[#F27059] hover:from-[#D4472E] hover:to-[#E85D44] text-white rounded-xl text-[11px] font-extrabold shadow-md shadow-[#E85D44]/30 active:scale-95 disabled:opacity-50 cursor-pointer"
+                  >
+                    <Camera className="w-3.5 h-3.5" />
+                    <span>{isCapturing ? "Capturing..." : "Capture Verified Scan"}</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Flash Capture Feedback Animation */}
             {isCapturing && (
-              <div className="absolute inset-0 bg-white animate-ping pointer-events-none opacity-80" />
+              <div className="absolute inset-0 bg-white animate-ping pointer-events-none opacity-80 z-30" />
             )}
           </>
         )}
       </div>
 
-      {/* Camera Controls & Actions (Always visible without vertical scrolling) */}
-      <div className="w-full mt-3 flex items-center justify-between gap-3">
-        {/* Auto Capture Toggle */}
-        <label className="flex items-center gap-2 cursor-pointer select-none text-xs font-semibold text-[#18181B]">
-          <input
-            type="checkbox"
-            checked={autoCapture}
-            onChange={(e) => setAutoCapture(e.target.checked)}
-            className="w-4 h-4 rounded text-[#E85D44] focus:ring-[#E85D44] accent-[#E85D44]"
-          />
-          <span className="flex items-center gap-1.5">
-            <Zap className="w-3.5 h-3.5 text-[#E85D44]" />
-            Auto-Capture When Locked
-          </span>
-        </label>
+      {/* External Camera Controls (Only when not inline) */}
+      {!inline && (
+        <div className="w-full mt-3 flex items-center justify-between gap-3">
+          {/* Auto Capture Toggle */}
+          <label className="flex items-center gap-2 cursor-pointer select-none text-xs font-semibold text-[#18181B]">
+            <input
+              type="checkbox"
+              checked={autoCapture}
+              onChange={(e) => setAutoCapture(e.target.checked)}
+              className="w-4 h-4 rounded text-[#E85D44] focus:ring-[#E85D44] accent-[#E85D44]"
+            />
+            <span className="flex items-center gap-1.5">
+              <Zap className="w-3.5 h-3.5 text-[#E85D44]" />
+              Auto-Capture When Locked
+            </span>
+          </label>
 
-        <div className="flex items-center gap-2">
-          {onClose && (
+          <div className="flex items-center gap-2">
+            {onClose && (
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2.5 rounded-2xl border border-[#F2E8E3] bg-[#FAF4F0] hover:bg-stone-100 text-xs font-bold text-[#78716C] hover:text-[#18181B] transition-colors"
+              >
+                Cancel
+              </button>
+            )}
+
+            {/* Manual Capture & Verify Quality Button */}
             <button
               type="button"
-              onClick={onClose}
-              className="px-4 py-2.5 rounded-2xl border border-[#F2E8E3] bg-[#FAF4F0] hover:bg-stone-100 text-xs font-bold text-[#78716C] hover:text-[#18181B] transition-colors"
+              onClick={triggerCapture}
+              disabled={isCapturing}
+              className="flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#E85D44] to-[#F27059] hover:from-[#D4472E] hover:to-[#E85D44] text-white rounded-2xl text-xs font-bold transition-all shadow-md shadow-[#E85D44]/20 active:scale-95 disabled:opacity-50 cursor-pointer"
             >
-              Cancel
+              <Camera className="w-4 h-4" />
+              <span>{isCapturing ? "Capturing..." : "Capture Verified Scan"}</span>
             </button>
-          )}
-
-          {/* Manual Capture & Verify Quality Button */}
-          <button
-            type="button"
-            onClick={triggerCapture}
-            disabled={isCapturing}
-            className="flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#E85D44] to-[#F27059] hover:from-[#D4472E] hover:to-[#E85D44] text-white rounded-2xl text-xs font-bold transition-all shadow-md shadow-[#E85D44]/20 active:scale-95 disabled:opacity-50 cursor-pointer"
-          >
-            <Camera className="w-4 h-4" />
-            <span>{isCapturing ? "Capturing..." : "Capture Verified Scan"}</span>
-          </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
