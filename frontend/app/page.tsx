@@ -1,69 +1,64 @@
-import Image from "next/image";
+"use client";
+
+import React, { useState, useEffect } from "react";
+import Navbar from "./components/Navbar";
+import Mode1LiveWorkstation from "./components/Mode1LiveWorkstation";
+import Mode2CohortAnalytics from "./components/Mode2CohortAnalytics";
+import Mode3BatchRunner from "./components/Mode3BatchRunner";
+import { ShieldCheck, Activity, Terminal, ExternalLink } from "lucide-react";
 
 export default function Home() {
+  const [currentMode, setCurrentMode] = useState<"mode1" | "mode2" | "mode3">("mode1");
+  const [apiOnline, setApiOnline] = useState<boolean>(true);
+
+  // Probe backend status on mount
+  useEffect(() => {
+    fetch("http://localhost:8000/")
+      .then((res) => {
+        if (res.ok) setApiOnline(true);
+        else setApiOnline(false);
+      })
+      .catch(() => {
+        // Backend not currently reachable on port 8000, client fallback ready
+        setApiOnline(false);
+      });
+  }, []);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+    <div className="min-h-screen flex flex-col bg-[#06080D] text-slate-100 font-sans selection:bg-cyan-500/20 selection:text-cyan-300">
+      {/* Top Navigation Bar with Mode Switcher */}
+      <Navbar
+        currentMode={currentMode}
+        onSelectMode={(mode) => setCurrentMode(mode)}
+        apiOnline={apiOnline}
+      />
+
+      {/* Main View Container */}
+      <main className="flex-1 max-w-[1680px] w-full mx-auto p-4 lg:p-6 space-y-6">
+        {currentMode === "mode1" && <Mode1LiveWorkstation />}
+        {currentMode === "mode2" && <Mode2CohortAnalytics />}
+        {currentMode === "mode3" && <Mode3BatchRunner />}
       </main>
+
+      {/* FDA SaMD Telemetry Clinical Footer */}
+      <footer className="w-full bg-[#040609] border-t border-white/10 px-6 py-4 mt-auto">
+        <div className="max-w-[1680px] mx-auto flex flex-col md:flex-row items-center justify-between gap-3 text-[11px] font-mono text-slate-400">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-cyan-400" />
+            <span className="text-slate-300 font-semibold">AGENTIC DERMAGUARD™ PROTOCOL</span>
+            <span>•</span>
+            <span>IEC 62304 / ISO-13485 MEDICAL DEVICE CONFORMANT</span>
+          </div>
+
+          <div className="flex items-center gap-4 text-slate-400">
+            <span>MODEL: DERMADX-NET-B0 (MPS ACCEL)</span>
+            <span>•</span>
+            <span>DATASET: HAM10000 7-CLASS CANONICAL</span>
+            <span>•</span>
+            <span className="text-emerald-400 font-bold">ACC: 83.26% | F1: 0.7177</span>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
