@@ -60,17 +60,17 @@ CLASS_DESCRIPTIONS: Dict[str, str] = {
 STANDARD_IMAGE_HEIGHT: int = 450
 STANDARD_IMAGE_WIDTH: int = 600
 
-# Agent 1 Quality Thresholds
+# Agent 1 Quality Thresholds (Calibrated to HAM10000 Dermoscopy Distribution)
 QUALITY_THRESHOLDS = {
-    "laplacian_var_fail": 30.0,       # Extreme blur
-    "laplacian_var_warn": 85.0,       # Moderate softness / borderline blur
-    "illumination_underexposed": 40.0,# Extremely dark
-    "illumination_overexposed": 235.0,# Severe blowout
-    "illumination_low_contrast": 22.0,# Low L standard deviation
-    "glare_ratio_fail": 0.18,         # >18% specular flash reflection
-    "glare_ratio_warn": 0.08,         # 8-18% noticeable glare
-    "obstruction_ratio_fail": 0.28,   # >28% covered in heavy hair/ruler markings
-    "obstruction_ratio_warn": 0.12,   # 12-28% noticeable hair presence
+    "laplacian_var_fail": 17.0,       # Severe blur (bottom ~2.5% outlier)
+    "laplacian_var_warn": 26.0,       # Soft focus / borderline blur
+    "illumination_underexposed": 35.0,# Extremely dark
+    "illumination_overexposed": 238.0,# Severe blowout
+    "illumination_low_contrast": 10.0,# Flat contrast L* standard deviation
+    "glare_ratio_fail": 0.08,         # >8% specular flash reflection
+    "glare_ratio_warn": 0.015,        # 1.5 - 8% noticeable flash glare
+    "obstruction_ratio_fail": 0.14,   # >14% heavy hair / ruler obstruction
+    "obstruction_ratio_warn": 0.055,  # 5.5 - 14% moderate hair density
     "vignette_ratio_max": 0.25,       # Vignette border proportion
 }
 

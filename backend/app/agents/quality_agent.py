@@ -121,9 +121,9 @@ class ImageQualityAgent:
         laplacian = cv2.Laplacian(gray, cv2.CV_64F)
         roi_laplacian = laplacian[roi_mask]
         laplacian_var = float(np.var(roi_laplacian))
-        # Normalized blur score: 0.0 (unusable blur) to 1.0 (crystal sharp)
-        # 300+ variance is sharp dermoscopy
-        blur_score = float(np.clip(laplacian_var / 250.0, 0.0, 1.0))
+        # Non-linear logarithmic scaling calibrated to dermoscopy distribution:
+        # Typical sharp fluid-immersion dermoscopy (var ~50-100) scores 0.75 - 0.95
+        blur_score = float(np.clip(np.log1p(laplacian_var) / np.log1p(100.0), 0.0, 1.0))
 
         # 5. Illumination & Contrast (CIE-LAB L* channel)
         lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
@@ -132,12 +132,11 @@ class ImageQualityAgent:
         l_mean = float(np.mean(roi_l))
         l_std = float(np.std(roi_l))
 
-        # Optimal mean L* is ~125-170 with std >= 25
-        # Score penalizes mean deviations outside [60, 210] and std < 20
+        # Optimal mean L* is ~115-180 with std >= 15
         l_mean_dist = abs(l_mean - 145.0)
-        mean_penalty = max(0.0, (l_mean_dist - 30.0) / 100.0)
-        std_penalty = max(0.0, (28.0 - l_std) / 28.0) if l_std < 28.0 else 0.0
-        illumination_score = float(np.clip(1.0 - (mean_penalty + 0.5 * std_penalty), 0.0, 1.0))
+        mean_penalty = max(0.0, (l_mean_dist - 35.0) / 100.0)
+        std_penalty = max(0.0, (18.0 - l_std) / 18.0) if l_std < 18.0 else 0.0
+        illumination_score = float(np.clip(1.0 - (mean_penalty + 0.4 * std_penalty), 0.0, 1.0))
 
         # 6. Specular Glare (HSV Color Space: High V, Low S)
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
@@ -182,7 +181,7 @@ class ImageQualityAgent:
         elif l_mean < 60.0:
             is_warn = True
             reasons.append(f"Suboptimal lighting: underexposed (L* mean {l_mean:.1f})")
-        elif l_mean > 215.0:
+        elif l_mean > 218.0:
             is_warn = True
             reasons.append(f"Suboptimal lighting: high exposure (L* mean {l_mean:.1f})")
 
