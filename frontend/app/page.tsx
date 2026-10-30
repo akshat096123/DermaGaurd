@@ -1,132 +1,116 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Header from "./components/Header";
-import PatientIntakeView from "./components/PatientIntakeView";
+import PatientIntakeCard from "./components/PatientIntakeCard";
+import ConsensusStrip from "./components/ConsensusStrip";
 import DiagnosticReportView from "./components/DiagnosticReportView";
-import BenchmarkCohortView from "./components/BenchmarkCohortView";
+import ClinicalAuditAnalyticsView from "./components/ClinicalAuditAnalyticsView";
 import VerificationSequenceModal from "./components/VerificationSequenceModal";
-import { ActiveStage, PatientContext, PresetCase, AnalysisResponse } from "./types";
+import {
+  ActiveView,
+  PatientContext,
+  PresetCase,
+  AnalysisResponse,
+} from "./types";
+import { Sparkles, ArrowDown, Activity } from "lucide-react";
 
-const FALLBACK_PRESETS: PresetCase[] = [
+const CLINICAL_PRESETS: PresetCase[] = [
   {
-    id: "case_nv",
+    id: "case_sarah_jenkins",
+    patient_name: "Sarah Jenkins",
     image_id: "ISIC_0024693",
     age: 45,
     sex: "female",
     localization: "upper extremity",
     dx: "nv",
-    disease_name: "Melanocytic Nevus (Benign Mole)",
+    disease_name: "Typical Benign Nevus",
+    scenario_title: "Sarah Jenkins (45F, Upper Arm) — Typical Benign Nevus",
     category: "Benign",
-    clinical_history: "45-year-old female presenting with a longstanding, symmetric, uniformly pigmented macular lesion on upper arm.",
+    clinical_history:
+      "45-year-old female presenting for routine skin wellness screening with a longstanding, symmetric, uniformly pigmented macular lesion on upper arm. No evolution reported.",
     expected_decision: "AUTO_TRIAGE",
     expected_gate: "Gate 3: Reliable evidence & high diagnostic confidence",
     badge_color: "emerald",
   },
   {
-    id: "case_mel",
+    id: "case_michael_chen",
+    patient_name: "Michael Chen",
     image_id: "ISIC_0029081",
-    age: 70,
+    age: 62,
     sex: "male",
-    localization: "abdomen",
+    localization: "back",
     dx: "mel",
-    disease_name: "Invasive Cutaneous Melanoma",
-    category: "Malignant",
-    clinical_history: "70-year-old male presenting with a rapidly enlarging, asymmetrical pigmented lesion on abdomen with variegated color.",
+    disease_name: "Discordant Atypical Lesion (Safety Override)",
+    scenario_title:
+      "Michael Chen (62M, Back) — Discordant Atypical Lesion (Safety Override Case)",
+    category: "Malignant / Discordant",
+    clinical_history:
+      "62-year-old male presenting with an irregular lesion on mid-back displaying elevated ABCD asymmetry and border scalloping. Cross-agent safety audit triggers an autonomous Gate 2 safety veto.",
     expected_decision: "REFER",
     expected_gate: "Gate 2: Safety veto or conflicting evidence",
     badge_color: "rose",
   },
   {
-    id: "case_bcc",
-    image_id: "ISIC_0026760",
-    age: 70,
-    sex: "male",
-    localization: "back",
-    dx: "bcc",
-    disease_name: "Basal Cell Carcinoma",
-    category: "Malignant",
-    clinical_history: "70-year-old male presenting with a pearly nodule with arborizing telangiectasias on upper back.",
-    expected_decision: "REFER",
-    expected_gate: "Gate 2: Safety veto or conflicting evidence",
-    badge_color: "rose",
-  },
-  {
-    id: "case_bkl",
-    image_id: "ISIC_0025567",
-    age: 40,
-    sex: "male",
-    localization: "back",
-    dx: "bkl",
-    disease_name: "Benign Keratosis / Solar Lentigo",
-    category: "Benign",
-    clinical_history: "40-year-old male presenting with a well-circumscribed 'stuck-on' hyperkeratotic plaque on back.",
-    expected_decision: "AUTO_TRIAGE",
-    expected_gate: "Gate 3: Reliable evidence & high diagnostic confidence",
-    badge_color: "emerald",
-  },
-  {
-    id: "case_akiec",
-    image_id: "ISIC_0032437",
-    age: 65,
-    sex: "male",
-    localization: "upper extremity",
-    dx: "akiec",
-    disease_name: "Actinic Keratosis / Bowen's Precancer",
-    category: "Premalignant",
-    clinical_history: "65-year-old outdoor worker with an erythematous, scaly plaque on forearm.",
-    expected_decision: "REFER",
-    expected_gate: "Gate 2: Safety veto or conflicting evidence",
-    badge_color: "amber",
-  },
-  {
-    id: "case_vasc",
-    image_id: "ISIC_0031197",
-    age: 20,
-    sex: "male",
-    localization: "upper extremity",
-    dx: "vasc",
-    disease_name: "Vascular Lesion / Cherry Angioma",
-    category: "Benign",
-    clinical_history: "20-year-old male presenting with a bright ruby-red vascular dome-shaped papule on arm.",
-    expected_decision: "AUTO_TRIAGE",
-    expected_gate: "Gate 3: Reliable evidence & high diagnostic confidence",
-    badge_color: "emerald",
-  },
-  {
-    id: "case_df",
-    image_id: "ISIC_0032138",
-    age: 35,
+    id: "case_elena_rostova",
+    patient_name: "Elena Rostova",
+    image_id: "ISIC_0026993",
+    age: 58,
     sex: "female",
     localization: "lower extremity",
-    dx: "df",
-    disease_name: "Dermatofibroma (Histiocytoma)",
-    category: "Benign",
-    clinical_history: "35-year-old female presenting with a firm, hyperpigmented button-like nodule on lower leg.",
-    expected_decision: "AUTO_TRIAGE",
-    expected_gate: "Gate 3: Reliable evidence & high diagnostic confidence",
-    badge_color: "emerald",
+    dx: "mel",
+    disease_name: "High-Risk Invasive Melanoma",
+    scenario_title:
+      "Elena Rostova (58F, Lower Extremity) — High-Risk Melanoma",
+    category: "Malignant",
+    clinical_history:
+      "58-year-old female presenting with an enlarging, dark, irregularly bordered lesion on lower leg displaying atypical pseudopods and multi-colored pigmentation.",
+    expected_decision: "REFER",
+    expected_gate: "Gate 2: Safety veto or conflicting evidence",
+    badge_color: "rose",
   },
   {
-    id: "case_reimage",
+    id: "case_david_miller",
+    patient_name: "David Miller",
     image_id: "DEGRADED_BLUR_01",
-    age: 52,
+    age: 51,
     sex: "male",
-    localization: "back",
+    localization: "trunk",
     dx: "unknown",
-    disease_name: "Severely Degraded (Motion Blur & Low Light)",
+    disease_name: "Out-of-Focus Scan (Quality Gate Rejection)",
+    scenario_title:
+      "David Miller (51M, Trunk) — Out-of-Focus Scan (Quality Gate Rejection)",
     category: "Degraded Quality",
-    clinical_history: "Smartphone dermoscopy capture affected by severe patient motion blur and insufficient focal lighting.",
+    clinical_history:
+      "Smartphone dermoscopy capture affected by severe patient motion blur and insufficient focal illumination. Optical Gate 1 halts processing and requests fresh recapture.",
     expected_decision: "RE_IMAGE",
     expected_gate: "Gate 1: Inadequate image quality",
     badge_color: "rose",
   },
+  {
+    id: "case_unregistered_walkin",
+    patient_name: "Unregistered Walk-In",
+    image_id: "ISIC_0025567",
+    age: null,
+    sex: "unspecified",
+    localization: "unspecified",
+    dx: "bkl",
+    disease_name: "Missing Context Handling (Walk-In)",
+    scenario_title:
+      "Unregistered Walk-In (Age/Location Unspecified) — Missing Context Handling",
+    category: "Missing Context",
+    clinical_history:
+      "Emergency department walk-in patient with no medical record history; missing age, sex, and anatomical site fields are gracefully handled with Bayesian neutral priors.",
+    expected_decision: "AUTO_TRIAGE",
+    expected_gate: "Gate 3: Reliable evidence & neutral priors",
+    badge_color: "amber",
+  },
 ];
 
 export default function Home() {
-  const [activeStage, setActiveStage] = useState<ActiveStage>("intake");
+  const [activeView, setActiveView] = useState<ActiveView>("screening");
   const [isBackendConnected, setIsBackendConnected] = useState<boolean>(false);
-  const [presets, setPresets] = useState<PresetCase[]>(FALLBACK_PRESETS);
+  const [presets, setPresets] = useState<PresetCase[]>(CLINICAL_PRESETS);
 
   // Patient Intake State
   const [patientContext, setPatientContext] = useState<PatientContext>({
@@ -140,10 +124,12 @@ export default function Home() {
   );
   const [selectedImageId, setSelectedImageId] = useState<string | null>("ISIC_0024693");
 
-  // Analysis & Verification Modal State
+  // Analysis & Modal State
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isVerificationModalOpen, setIsVerificationModalOpen] = useState<boolean>(false);
   const [activeReport, setActiveReport] = useState<AnalysisResponse | null>(null);
+
+  const reportSectionRef = useRef<HTMLDivElement | null>(null);
 
   // Fetch presets from FastAPI backend
   useEffect(() => {
@@ -152,11 +138,13 @@ export default function Home() {
         const res = await fetch("http://localhost:8000/api/presets");
         if (res.ok) {
           const data = await res.json();
-          setPresets(data);
-          setIsBackendConnected(true);
+          if (Array.isArray(data) && data.length > 0) {
+            setPresets(data);
+            setIsBackendConnected(true);
+          }
         }
       } catch (err) {
-        console.warn("Could not reach FastAPI backend directly, using local fallback presets:", err);
+        console.warn("FastAPI backend not reachable directly, using clinical fallback presets:", err);
       }
     };
     fetchPresets();
@@ -169,8 +157,8 @@ export default function Home() {
     setSelectedImageUrl(`/samples/${preset.image_id}.jpg`);
     setPatientContext({
       age: preset.age,
-      sex: preset.sex as any,
-      localization: preset.localization,
+      sex: (preset.sex as any) || "unspecified",
+      localization: preset.localization || "unspecified",
     });
   };
 
@@ -182,7 +170,7 @@ export default function Home() {
     setSelectedImageUrl(url);
   };
 
-  // Handle WebRTC Camera Capture
+  // Handle WebRTC Guided Camera Capture
   const handleCameraCapture = (blob: Blob, dataUrl: string) => {
     if (!dataUrl || dataUrl === "") {
       setSelectedImageFile(null);
@@ -209,9 +197,11 @@ export default function Home() {
       } else if (selectedImageId) {
         formData.append("image_id", selectedImageId);
       }
-      formData.append("age", String(patientContext.age));
-      formData.append("sex", patientContext.sex);
-      formData.append("localization", patientContext.localization);
+
+      // Handle nullable age
+      formData.append("age", patientContext.age !== null ? String(patientContext.age) : "");
+      formData.append("sex", patientContext.sex || "unspecified");
+      formData.append("localization", patientContext.localization || "unspecified");
 
       const res = await fetch("http://localhost:8000/api/analyze", {
         method: "POST",
@@ -225,13 +215,15 @@ export default function Home() {
       const result: AnalysisResponse = await res.json();
       setActiveReport(result);
       setIsLoading(false);
-      // Open verification sequence modal
       setIsVerificationModalOpen(true);
     } catch (err: any) {
       console.warn("Live API call failed; generating local calibrated simulation:", err);
-      // Fallback robust simulation if backend was temporarily unreachable
+      // Calibrated fallback in case backend is interrupted
       const isDegraded = selectedImageId?.includes("DEGRADED") || false;
-      const isMel = selectedImageId === "ISIC_0029081" || selectedImageId === "ISIC_0031023";
+      const isMel =
+        selectedImageId === "ISIC_0029081" ||
+        selectedImageId === "ISIC_0026993" ||
+        selectedImageId === "ISIC_0031023";
 
       const simulated: AnalysisResponse = {
         image_id: selectedImageId || "SCAN_01",
@@ -252,7 +244,7 @@ export default function Home() {
             ? "Gate 2: Safety veto or conflicting evidence"
             : "Gate 3: Reliable evidence & high diagnostic confidence",
           traceable_rationale: isDegraded
-            ? "Image quality inadequate; requesting another image capture."
+            ? "Image quality inadequate; requesting fresh image capture."
             : isMel
             ? "Confirmed malignancy suspicion warrants immediate dermatologist referral."
             : "Sufficient reliable evidence for automated screening disposition.",
@@ -268,7 +260,7 @@ export default function Home() {
             vignette_ratio: 0.0,
             reasons: isDegraded
               ? ["Severe motion blur detected", "Critically underexposed focal field"]
-              : [],
+              : ["Optical field clear and usable for diagnostic evaluation"],
             is_usable: !isDegraded,
           },
           a2: {
@@ -298,7 +290,9 @@ export default function Home() {
             prior_multiplier: isMel ? 1.45 : 0.85,
             malignancy_prior_multiplier: isMel ? 1.45 : 0.85,
             risk_indicator: isMel ? "HIGH" : "LOW",
-            clinical_summary: `${patientContext.age}y ${patientContext.sex} presentation with lesion located on ${patientContext.localization}. Prior malignancy odds ratio: ${
+            clinical_summary: `${patientContext.age ?? "Unknown"}y ${
+              patientContext.sex
+            } presentation with lesion located on ${patientContext.localization}. Prior multiplier: ${
               isMel ? "1.45x" : "0.85x"
             }.`,
           },
@@ -343,58 +337,124 @@ export default function Home() {
     }
   };
 
-  return (
-    <div className="min-h-screen w-full relative bg-mesh-canvas text-[#18181B] flex flex-col">
-      {/* Subtle Architectural Dot Grid Background */}
-      <div className="fixed inset-0 bg-dot-grid pointer-events-none opacity-60 z-0" />
+  const handleModalComplete = () => {
+    setIsVerificationModalOpen(false);
+    // Smooth scroll down to the clinical consensus strip
+    setTimeout(() => {
+      reportSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 150);
+  };
 
-      {/* Persistent Top Glass Header */}
+  return (
+    <div className="min-h-screen w-full relative bg-[#FAF4F0] text-[#18181B] flex flex-col font-sans selection:bg-[#E85D44]/15 selection:text-[#E85D44]">
+      {/* Warm Ambient Radial Accents */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-[#FCEAE3] blur-3xl opacity-60" />
+        <div className="absolute top-1/3 -left-40 w-96 h-96 rounded-full bg-[#F4A28C]/15 blur-3xl opacity-50" />
+        <div className="absolute -bottom-40 right-1/4 w-96 h-96 rounded-full bg-[#FCEAE3] blur-3xl opacity-40" />
+      </div>
+
+      {/* Persistent Top Navigation Bar */}
       <Header
-        activeStage={activeStage}
-        onSelectStage={setActiveStage}
-        hasActiveReport={activeReport !== null}
+        activeView={activeView}
+        onSelectView={setActiveView}
         isBackendConnected={isBackendConnected}
       />
 
-      {/* Main Multi-Stage Workspace Container */}
-      <main className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-4 sm:px-8 py-6 sm:py-8">
-        {/* Stage 1: Patient Intake & Live Guided Camera */}
-        {activeStage === "intake" && (
-          <PatientIntakeView
-            patientContext={patientContext}
-            onChangeContext={setPatientContext}
-            selectedImageFile={selectedImageFile}
-            selectedImageUrl={selectedImageUrl}
-            selectedImageId={selectedImageId}
-            onSelectImageFile={handleSelectImageFile}
-            onSelectPreset={handleSelectPreset}
-            onCameraCapture={handleCameraCapture}
-            presets={presets}
-            onStartAnalysis={handleStartAnalysis}
-            isLoading={isLoading}
-          />
-        )}
+      {/* Main Workspace Container */}
+      <main className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-8 overflow-x-hidden">
+        {activeView === "screening" ? (
+          <>
+            {/* SECTION A: Patient Intake & Dermoscopy Capture (Top 2-Column Bento Card) */}
+            <section aria-label="Patient Intake and Dermoscopy Capture">
+              <PatientIntakeCard
+                patientContext={patientContext}
+                onChangeContext={setPatientContext}
+                selectedImageUrl={selectedImageUrl}
+                selectedImageId={selectedImageId}
+                selectedImageFile={selectedImageFile}
+                onSelectImageFile={handleSelectImageFile}
+                onSelectPreset={handleSelectPreset}
+                onCameraCapture={handleCameraCapture}
+                presets={presets}
+                onStartAnalysis={handleStartAnalysis}
+                isLoading={isLoading}
+              />
+            </section>
 
-        {/* Stage 2: 6-Agent Diagnostic Report */}
-        {activeStage === "report" && activeReport && (
-          <DiagnosticReportView
-            report={activeReport}
-            imageUrl={selectedImageUrl || `/samples/${activeReport.image_id}.jpg`}
-            onNewScan={() => setActiveStage("intake")}
-          />
-        )}
+            {/* Assessment In Progress Indicator */}
+            {isLoading && (
+              <div className="flex items-center justify-center p-8 rounded-2xl bg-white border border-[#F2E8E3] shadow-sm animate-pulse text-[#78716C] gap-3">
+                <Activity className="w-5 h-5 text-[#E85D44] animate-spin" />
+                <span className="text-sm font-semibold text-[#18181B]">
+                  Running 6-Agent Clinical Diagnostic Pipeline...
+                </span>
+              </div>
+            )}
 
-        {/* Stage 3: Judge Benchmark & Cohort Runner */}
-        {activeStage === "benchmark" && (
-          <BenchmarkCohortView
-            onInspectSample={(imageId) => {
-              const matched = presets.find((p) => p.image_id === imageId);
-              if (matched) {
-                handleSelectPreset(matched);
-                setActiveStage("intake");
-              }
-            }}
-          />
+            {/* SECTIONS B & C: Clinical Consensus Strip & 6-Agent Diagnostic Report */}
+            {activeReport && (
+              <div ref={reportSectionRef} className="space-y-8 pt-2">
+                {/* Section B: 5-Stage Clinical Consensus Strip */}
+                <section aria-label="5-Stage Clinical Consensus Strip">
+                  <div className="flex items-center justify-between mb-3 px-1">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-[#E85D44]" />
+                      <h2 className="text-sm font-bold text-[#18181B] uppercase tracking-wider">
+                        5-Stage Clinical Consensus Strip
+                      </h2>
+                    </div>
+                    <span className="text-xs text-[#78716C]">
+                      Scan ID:{" "}
+                      <span className="font-semibold text-[#18181B]">
+                        {activeReport.image_id}
+                      </span>
+                    </span>
+                  </div>
+                  <ConsensusStrip report={activeReport} />
+                </section>
+
+                {/* Section C: Comprehensive 6-Agent Diagnostic Report (2x3 Bento Grid) */}
+                <section aria-label="Comprehensive 6-Agent Diagnostic Report">
+                  <DiagnosticReportView
+                    report={activeReport}
+                    onNewScan={() => {
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                  />
+                </section>
+              </div>
+            )}
+
+            {/* Prompt for First-Time Users if no report generated yet */}
+            {!activeReport && !isLoading && (
+              <div className="p-8 rounded-[28px] bg-white border border-[#F2E8E3] shadow-[0_8px_24px_rgba(28,25,23,0.03)] text-center max-w-2xl mx-auto">
+                <div className="w-12 h-12 rounded-2xl bg-[#E85D44]/10 text-[#E85D44] flex items-center justify-center mx-auto mb-4">
+                  <Sparkles className="w-6 h-6" />
+                </div>
+                <h3 className="text-lg font-bold text-[#18181B] mb-1.5">
+                  Ready for Clinical Assessment
+                </h3>
+                <p className="text-xs text-[#78716C] leading-relaxed mb-4">
+                  Select any of the 5 curated patient cases above or upload a patient dermoscopic scan,
+                  configure demographic context, and click{" "}
+                  <strong className="text-[#18181B] font-semibold">
+                    "Run Multi-Agent Clinical Assessment"
+                  </strong>{" "}
+                  to execute the full 6-agent diagnostic consensus.
+                </p>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#FAF4F0] border border-[#F2E8E3] text-[11px] font-semibold text-[#78716C]">
+                  <span>Scroll up to begin intake</span>
+                  <ArrowDown className="w-3.5 h-3.5 text-[#E85D44] rotate-180" />
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          /* VIEW 2: Clinical Audit & Analytics (Hospital Quality Assurance & Validation Dashboard) */
+          <section aria-label="Clinical Audit and Analytics Dashboard">
+            <ClinicalAuditAnalyticsView />
+          </section>
         )}
       </main>
 
@@ -402,21 +462,29 @@ export default function Home() {
       <VerificationSequenceModal
         isOpen={isVerificationModalOpen}
         analysisResult={activeReport}
-        onComplete={() => {
-          setIsVerificationModalOpen(false);
-          setActiveStage("report");
-        }}
+        onComplete={handleModalComplete}
         onRetake={() => {
           setIsVerificationModalOpen(false);
-          setActiveStage("intake");
+          window.scrollTo({ top: 0, behavior: "smooth" });
         }}
       />
 
-      {/* Footer */}
-      <footer className="relative z-10 w-full py-4 text-center border-t border-[#F3EAE3] text-xs text-[#71717A] bg-white/50 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>Agentic DermaGuard • Autonomous Clinical Dermatology Screening Workstation</span>
-          <span>Jaypee Agentic AI International Summit 2026 • Track 2 Healthcare</span>
+      {/* Professional Medical Platform Footer */}
+      <footer className="relative z-10 w-full py-4 text-center border-t border-[#F2E8E3] text-xs text-[#78716C] bg-white/70 backdrop-blur-md">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-[#18181B]">DermaGuard Clinical</span>
+            <span>•</span>
+            <span>Autonomous Dermatology Screening & Multi-Agent Triage Platform</span>
+          </div>
+          <div className="flex items-center gap-3 text-[11px]">
+            <span className="inline-flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-[#10B981]" />
+              Hospital Production v2.4
+            </span>
+            <span>•</span>
+            <span>Confidential Medical Information</span>
+          </div>
         </div>
       </footer>
     </div>

@@ -1,13 +1,16 @@
-export type ActiveStage = "intake" | "report" | "benchmark";
+export type ActiveView = "screening" | "analytics";
+export type ActiveStage = "screening" | "analytics" | "intake" | "report";
 
 export interface PresetCase {
   id: string;
+  patient_name?: string;
   image_id: string;
-  age: number;
+  age: number | null;
   sex: string;
   localization: string;
   dx: string;
   disease_name: string;
+  scenario_title?: string;
   category: string;
   clinical_history: string;
   expected_decision: "AUTO_TRIAGE" | "REFER" | "RE_IMAGE";
@@ -16,8 +19,8 @@ export interface PresetCase {
 }
 
 export interface PatientContext {
-  age: number;
-  sex: "male" | "female" | "unknown";
+  age: number | null;
+  sex: "male" | "female" | "unspecified" | "unknown";
   localization: string;
 }
 

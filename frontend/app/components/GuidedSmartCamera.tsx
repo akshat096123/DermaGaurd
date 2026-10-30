@@ -32,11 +32,13 @@ interface CameraTelemetry {
 
 interface GuidedSmartCameraProps {
   onCapture: (blob: Blob, dataUrl: string) => void;
+  onClose?: () => void;
   className?: string;
 }
 
 export default function GuidedSmartCamera({
   onCapture,
+  onClose,
   className = "",
 }: GuidedSmartCameraProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -616,16 +618,28 @@ export default function GuidedSmartCamera({
           </span>
         </label>
 
-        {/* Manual Capture & Verify Quality Button */}
-        <button
-          type="button"
-          onClick={triggerCapture}
-          disabled={isCapturing}
-          className="flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#E85D44] to-[#F27059] hover:from-[#D4472E] hover:to-[#E85D44] text-white rounded-2xl text-xs font-bold transition-all shadow-md shadow-[#E85D44]/20 active:scale-95 disabled:opacity-50 cursor-pointer"
-        >
-          <Camera className="w-4 h-4" />
-          <span>{isCapturing ? "Capturing..." : "Capture Verified Scan"}</span>
-        </button>
+        <div className="flex items-center gap-2">
+          {onClose && (
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2.5 rounded-2xl border border-[#F2E8E3] bg-[#FAF4F0] hover:bg-stone-100 text-xs font-bold text-[#78716C] hover:text-[#18181B] transition-colors"
+            >
+              Cancel
+            </button>
+          )}
+
+          {/* Manual Capture & Verify Quality Button */}
+          <button
+            type="button"
+            onClick={triggerCapture}
+            disabled={isCapturing}
+            className="flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#E85D44] to-[#F27059] hover:from-[#D4472E] hover:to-[#E85D44] text-white rounded-2xl text-xs font-bold transition-all shadow-md shadow-[#E85D44]/20 active:scale-95 disabled:opacity-50 cursor-pointer"
+          >
+            <Camera className="w-4 h-4" />
+            <span>{isCapturing ? "Capturing..." : "Capture Verified Scan"}</span>
+          </button>
+        </div>
       </div>
     </div>
   );
