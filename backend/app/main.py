@@ -166,6 +166,7 @@ def _find_image_file(image_id: str) -> Optional[Path]:
     clean_id = Path(image_id).stem
     target_name = f"{clean_id}.jpg"
     candidates = [
+        Path(f"health200/health-hidden/Health/hidden/images/{target_name}"),
         Path(f"data/raw/Health/eval/images/{target_name}"),
         Path(f"data/raw/Health/training/images/{target_name}"),
         Path(f"frontend/public/samples/{target_name}"),
@@ -177,7 +178,7 @@ def _find_image_file(image_id: str) -> Optional[Path]:
             return p
 
     # Fallback scan across local application directories
-    for search_dir in [Path("backend/app"), Path("data"), Path("frontend/public")]:
+    for search_dir in [Path("health200"), Path("backend/app"), Path("data"), Path("frontend/public")]:
         if search_dir.exists():
             for match in search_dir.rglob(target_name):
                 return match
