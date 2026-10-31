@@ -170,7 +170,7 @@ export default function WorkflowHeader({
         {/* 5-Page Workflow Progression Stepper with Connected Progress Line */}
         <div className="relative pt-2.5">
           {/* Subtle glowing connector line behind steps (desktop) */}
-          <div className="hidden md:block absolute top-[28px] left-[8%] right-[8%] h-[2px] bg-[#F2E8E3] z-0">
+          <div className="hidden md:block absolute top-[28px] left-[6%] right-[6%] h-[2px] bg-[#F2E8E3] z-0">
             <div
               className="h-full bg-gradient-to-r from-[#10B981] via-[#E85D44] to-[#F27059] transition-all duration-500 ease-out"
               style={{
@@ -188,7 +188,7 @@ export default function WorkflowHeader({
             {STEPS.map((step) => {
               const isCurrent = currentPage === step.page;
               const isCompleted = currentPage > step.page && (step.page === 1 || qualityPassed !== false);
-              const isLocked = (step.page > maxUnlockedPage && step.page !== 5) || (step.page > 2 && qualityPassed === false && step.page !== 5);
+              const isLocked = step.page > maxUnlockedPage || (step.page > 2 && qualityPassed === false);
               const isFailedGate = step.page === 2 && qualityPassed === false;
 
               const Icon = step.icon;
