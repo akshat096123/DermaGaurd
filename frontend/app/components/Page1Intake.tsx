@@ -255,55 +255,6 @@ export default function Page1Intake({
           </div>
         </div>
 
-        {/* Quick-Load Hospital Clinical Presets */}
-        <div className="space-y-2 pt-2 border-t border-[#F2E8E3]">
-          <div className="flex items-center justify-between">
-            <label className="text-[11px] font-bold text-[#78716C] uppercase tracking-wider flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-[#E85D44]" />
-              <span>Quick-Load Clinical Benchmark Cases (5 Scenarios)</span>
-            </label>
-            <span className="text-[10px] text-[#A8A29E]">Selects image + demographic context</span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-            {presets.map((preset) => {
-              const isSelected = selectedImageId === preset.image_id;
-              return (
-                <button
-                  key={preset.id}
-                  type="button"
-                  onClick={() => onSelectPreset(preset)}
-                  className={`p-3 rounded-xl border text-left transition-all ${
-                    isSelected
-                      ? "bg-[#E85D44]/10 border-[#E85D44] ring-1 ring-[#E85D44]"
-                      : "bg-[#FAF4F0] border-[#F2E8E3] hover:border-[#E5DCD4]"
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-0.5">
-                    <span className="text-xs font-extrabold text-[#18181B] truncate">
-                      {preset.patient_name || preset.disease_name}
-                    </span>
-                    <span
-                      className={`px-1.5 py-0.2 text-[9px] font-bold rounded ${
-                        preset.badge_color === "rose"
-                          ? "bg-[#E11D48]/15 text-[#E11D48]"
-                          : preset.badge_color === "amber"
-                          ? "bg-[#F59E0B]/15 text-[#B45309]"
-                          : "bg-[#10B981]/15 text-[#047857]"
-                      }`}
-                    >
-                      {preset.category}
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-[#78716C] line-clamp-1">
-                    {preset.scenario_title || preset.clinical_history}
-                  </p>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
         {/* ========================================================================= */}
         {/* STEP 2: ENTER PATIENT INFORMATION */}
         {/* ========================================================================= */}
@@ -481,8 +432,59 @@ export default function Page1Intake({
           </button>
 
           <p className="text-[11px] text-[#A8A29E] text-center font-medium">
-            Clinical Workflow: <strong>Page 1 (Intake)</strong> → <strong>Page 2 (Image Quality & Diagnosis)</strong> → <strong>Page 3 (Lesion Analysis & Context)</strong> → <strong>Page 4 (Safety & Coordinator)</strong>
+            Clinical Workflow: <strong>Page 1 (Intake)</strong> → <strong>Page 2 (Image Quality & Diagnosis)</strong> → <strong>Page 3 (Lesion & Context)</strong> → <strong>Page 4 (Safety & Coordinator)</strong> → <strong>Page 5 (Picture Result)</strong>
           </p>
+        </div>
+
+        {/* ========================================================================= */}
+        {/* QUICK-LOAD CLINICAL BENCHMARK CASES (5 SCENARIOS) - MOVED TO LAST OF PAGE 1 */}
+        {/* ========================================================================= */}
+        <div className="space-y-2.5 pt-5 border-t border-[#F2E8E3]">
+          <div className="flex items-center justify-between">
+            <label className="text-[11px] font-bold text-[#78716C] uppercase tracking-wider flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-[#E85D44]" />
+              <span>Quick-Load Clinical Benchmark Cases (5 Scenarios)</span>
+            </label>
+            <span className="text-[10px] text-[#A8A29E]">Selects image + demographic context</span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            {presets.map((preset) => {
+              const isSelected = selectedImageId === preset.image_id;
+              return (
+                <button
+                  key={preset.id}
+                  type="button"
+                  onClick={() => onSelectPreset(preset)}
+                  className={`p-3 rounded-xl border text-left transition-all ${
+                    isSelected
+                      ? "bg-[#E85D44]/10 border-[#E85D44] ring-1 ring-[#E85D44]"
+                      : "bg-[#FAF4F0] border-[#F2E8E3] hover:border-[#E5DCD4]"
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-0.5">
+                    <span className="text-xs font-extrabold text-[#18181B] truncate">
+                      {preset.patient_name || preset.disease_name}
+                    </span>
+                    <span
+                      className={`px-1.5 py-0.2 text-[9px] font-bold rounded ${
+                        preset.badge_color === "rose"
+                          ? "bg-[#E11D48]/15 text-[#E11D48]"
+                          : preset.badge_color === "amber"
+                          ? "bg-[#F59E0B]/15 text-[#B45309]"
+                          : "bg-[#10B981]/15 text-[#047857]"
+                      }`}
+                    >
+                      {preset.category}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-[#78716C] line-clamp-1">
+                    {preset.scenario_title || preset.clinical_history}
+                  </p>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
