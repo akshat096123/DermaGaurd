@@ -1,0 +1,68 @@
+{
+  "total_cases": 9704,
+  "training_cases": 7762,
+  "evaluation_cases": 1942,
+  "unique_lesions": 7271,
+  "classes": [
+    "akiec",
+    "bcc",
+    "bkl",
+    "df",
+    "mel",
+    "nv",
+    "vasc"
+  ],
+  "class_counts": {
+    "nv": 6514,
+    "mel": 1070,
+    "bkl": 1060,
+    "bcc": 501,
+    "akiec": 312,
+    "vasc": 136,
+    "df": 111
+  },
+  "class_percentages": {
+    "nv": 67.13,
+    "mel": 11.03,
+    "bkl": 10.92,
+    "bcc": 5.16,
+    "akiec": 3.22,
+    "vasc": 1.4,
+    "df": 1.14
+  },
+  "malignancy_breakdown": {
+    "malignant_total": 1883,
+    "malignant_percentage": 19.4,
+    "benign_total": 7821,
+    "benign_percentage": 80.6
+  },
+  "localization_distribution": {
+    "back": 2130,
+    "lower extremity": 2031,
+    "trunk": 1363,
+    "upper extremity": 1058,
+    "abdomen": 998,
+    "face": 717,
+    "chest": 389,
+    "foot": 311,
+    "unknown": 227,
+    "neck": 161,
+    "scalp": 125,
+    "hand": 88,
+    "ear": 54,
+    "genital": 45,
+    "acral": 7
+  },
+  "sex_distribution": {
+    "male": 5242,
+    "female": 4407,
+    "unknown": 55
+  },
+  "age_statistics": {
+    "mean": 51.9,
+    "std": 17.0,
+    "min": 0.0,
+    "max": 85.0,
+    "missing_count": 55
+  }
+}

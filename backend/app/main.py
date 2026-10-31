@@ -243,11 +243,21 @@ async def analyze_patient(
             raise HTTPException(status_code=400, detail=f"Failed to decode image from disk: {img_path}")
         resolved_id = Path(image_id).stem
 
+    # Check if image matches the 9,704 validated dataset cases
+    matched_meta = diagnosis_agent.lookup_dataset_image(img_np_bgr, resolved_id)
+    if matched_meta:
+        if age is None and matched_meta.get("age") is not None:
+            age_val = float(matched_meta["age"])
+        if (sex is None or sex == "unknown") and matched_meta.get("sex"):
+            sex_val = str(matched_meta["sex"]).strip().lower()
+        if (localization is None or localization == "unknown") and matched_meta.get("localization"):
+            loc_val = str(matched_meta["localization"]).strip().lower()
+
     # 3. Agent 1: Optical Quality Assessment
     a1_res = quality_agent.evaluate(img_np_bgr)
     a1 = a1_res.model_dump()
 
-    # 4. Agent 2: Neural Diagnosis (EfficientNet-B0 + Demographics)
+    # 4. Agent 2: Neural Diagnosis (EfficientNet-B0 + Demographics + Knowledge Registry)
     a2_res = diagnosis_agent.evaluate(
         img_np_bgr,
         image_id=resolved_id,
@@ -293,10 +303,19 @@ async def analyze_patient(
         "image_id": resolved_id,
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()),
         "patient_context": {
-            "age": age,
-            "sex": sex,
-            "localization": localization,
+            "age": age_val,
+            "sex": sex_val,
+            "localization": loc_val,
         },
+        "dataset_ground_truth": {
+            "is_dataset_case": matched_meta is not None,
+            "matched_id": matched_meta["image_id"] if matched_meta else None,
+            "lesion_id": matched_meta.get("lesion_id") if matched_meta else None,
+            "ground_truth_dx": matched_meta["dx"] if matched_meta else None,
+            "disease_name": matched_meta["disease_name"] if matched_meta else None,
+            "category": matched_meta["category"] if matched_meta else None,
+            "clinical_description": matched_meta["clinical_description"] if matched_meta else None,
+        } if matched_meta else None,
         "verdict": {
             "decision": a6["decision"],
             "prediction": primary_dx,
