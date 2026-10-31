@@ -14,6 +14,7 @@ import {
   BarChart3,
   RotateCcw,
   User,
+  Sparkles,
 } from "lucide-react";
 
 interface WorkflowHeaderProps {
@@ -55,9 +56,9 @@ const STEPS = [
   },
   {
     page: 5 as WorkflowPage,
-    title: "Page 5: Results & Benchmark",
-    subtitle: "Clinical Audit & Validation Results",
-    icon: BarChart3,
+    title: "Page 5: Picture Result",
+    subtitle: "Uploaded Image Analysis & Multi-Agent Tiles",
+    icon: Sparkles,
   },
 ];
 
@@ -97,7 +98,7 @@ export default function WorkflowHeader({
           </div>
 
           <div className="flex items-center gap-2.5 self-end sm:self-auto text-xs">
-            {/* View Mode Toggle: Screening vs 3D Body Map */}
+            {/* View Mode Toggle: Screening vs 3D Body Map vs Benchmark Audit */}
             <div className="flex items-center p-0.5 rounded-xl bg-[#FAF4F0] border border-[#F2E8E3] shadow-xs">
               <button
                 type="button"
@@ -122,6 +123,18 @@ export default function WorkflowHeader({
               >
                 <User className="w-3.5 h-3.5" />
                 <span>3D Body Map</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => onToggleViewMode?.("results")}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-[11px] font-bold transition-all ${
+                  viewMode === "results"
+                    ? "bg-gradient-to-r from-[#10B981] to-[#059669] text-white shadow-xs"
+                    : "text-[#78716C] hover:text-[#18181B]"
+                }`}
+              >
+                <BarChart3 className="w-3.5 h-3.5" />
+                <span>Benchmark Audit</span>
               </button>
             </div>
 

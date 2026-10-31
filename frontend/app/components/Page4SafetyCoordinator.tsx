@@ -624,7 +624,7 @@ export default function Page4SafetyCoordinator({
             onClick={onProceedToPage5}
             className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-[#E85D44] to-[#F27059] text-white text-xs font-extrabold shadow-md hover:shadow-lg flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.99] transition-all"
           >
-            <span>Proceed to Page 5: Results & Benchmark</span>
+            <span>Proceed to Page 5: Picture Result</span>
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>

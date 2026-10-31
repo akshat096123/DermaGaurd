@@ -6,6 +6,7 @@ import Page1Intake from "./components/Page1Intake";
 import Page2QualityDiagnosis from "./components/Page2QualityDiagnosis";
 import Page3LesionContext from "./components/Page3LesionContext";
 import Page4SafetyCoordinator from "./components/Page4SafetyCoordinator";
+import Page5PictureResult from "./components/Page5PictureResult";
 import DermaHologramAssistant from "./components/DermaHologramAssistant";
 import BodyMap3D from "./components/BodyMap3D";
 import ClinicalAuditAnalyticsView from "./components/ClinicalAuditAnalyticsView";
@@ -15,7 +16,7 @@ import {
   PresetCase,
   AnalysisResponse,
 } from "./types";
-import { Activity, Shield } from "lucide-react";
+import { Activity, Shield, Sparkles } from "lucide-react";
 
 const CLINICAL_PRESETS: PresetCase[] = [
   {
@@ -558,21 +559,53 @@ export default function Home() {
             )}
 
             {/* ===================================================================== */}
-            {/* PAGE 5: Benchmark Results & Clinical Audit */}
+            {/* PAGE 5: Picture Result (Uploaded Image Analysis & Multi-Agent Tiles) */}
             {/* ===================================================================== */}
-            {currentPage === 5 && (
-              <section aria-label="Page 5: Clinical Audit, Results & Benchmark">
-                <ClinicalAuditAnalyticsView
+            {currentPage === 5 && activeReport && (
+              <section aria-label="Page 5: Picture Result - Uploaded Image Analysis">
+                <Page5PictureResult
+                  report={activeReport}
+                  selectedImageUrl={selectedImageUrl}
                   onBackToPage4={() => {
-                    if (activeReport) {
-                      setCurrentPage(4);
-                    } else {
-                      setCurrentPage(1);
-                    }
+                    setCurrentPage(4);
                     window.scrollTo({ top: 0, behavior: "smooth" });
                   }}
                   onResetWorkflow={handleResetWorkflow}
+                  onOpenBodyMap={() => {
+                    setViewMode("bodymap");
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  onOpenBenchmarkAudit={() => {
+                    setViewMode("results");
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
                 />
+              </section>
+            )}
+
+            {currentPage === 5 && !activeReport && (
+              <section className="p-8 sm:p-12 text-center rounded-3xl bg-white border border-[#F2E8E3] shadow-sm max-w-xl mx-auto space-y-4">
+                <div className="w-14 h-14 mx-auto rounded-2xl bg-[#E85D44]/10 text-[#E85D44] flex items-center justify-center">
+                  <Sparkles className="w-7 h-7" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-extrabold text-[#18181B]">
+                    No Uploaded Picture Analyzed Yet
+                  </h3>
+                  <p className="text-xs text-[#78716C] mt-1 max-w-sm mx-auto">
+                    Please upload or capture a dermoscopy image on Page 1 to view the comprehensive 5-tile multi-agent picture result.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCurrentPage(1);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#E85D44] to-[#F27059] text-white text-xs font-bold shadow-md hover:shadow-lg transition-all"
+                >
+                  Go to Page 1: Intake & Scan
+                </button>
               </section>
             )}
           </>
@@ -593,8 +626,7 @@ export default function Home() {
           window.scrollTo({ top: 0, behavior: "smooth" });
         }}
         onOpenResults={() => {
-          setViewMode("workflow");
-          setCurrentPage(5);
+          setViewMode("results");
           window.scrollTo({ top: 0, behavior: "smooth" });
         }}
       />
