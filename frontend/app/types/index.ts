@@ -1,4 +1,5 @@
-export type ActiveView = "upload" | "diagnosis" | "analytics";
+export type WorkflowPage = 1 | 2 | 3 | 4;
+export type ActiveView = "page1" | "page2" | "page3" | "page4" | "analytics" | "upload" | "diagnosis";
 export type ActiveStage = "screening" | "analytics" | "intake" | "report";
 
 export interface PresetCase {

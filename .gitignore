@@ -12,6 +12,7 @@ venv/
 # Large Datasets & Archives
 *.zip
 data/raw/
+backend/app/dds/
 
 # macOS
 .DS_Store

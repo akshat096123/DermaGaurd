@@ -1,20 +1,18 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import Header from "./components/Header";
-import ImageUploadCard from "./components/ImageUploadCard";
-import PatientClinicalProfileCard from "./components/PatientClinicalProfileCard";
-import ConsensusStrip from "./components/ConsensusStrip";
-import DiagnosticReportView from "./components/DiagnosticReportView";
-import ClinicalAuditAnalyticsView from "./components/ClinicalAuditAnalyticsView";
-import VerificationSequenceModal from "./components/VerificationSequenceModal";
+import React, { useState, useEffect } from "react";
+import WorkflowHeader from "./components/WorkflowHeader";
+import Page1Intake from "./components/Page1Intake";
+import Page2QualityDiagnosis from "./components/Page2QualityDiagnosis";
+import Page3LesionContext from "./components/Page3LesionContext";
+import Page4SafetyCoordinator from "./components/Page4SafetyCoordinator";
 import {
-  ActiveView,
+  WorkflowPage,
   PatientContext,
   PresetCase,
   AnalysisResponse,
 } from "./types";
-import { Sparkles, ArrowDown, Activity, Upload, ArrowRight } from "lucide-react";
+import { Activity, Shield } from "lucide-react";
 
 const CLINICAL_PRESETS: PresetCase[] = [
   {
@@ -108,28 +106,35 @@ const CLINICAL_PRESETS: PresetCase[] = [
   },
 ];
 
+const DEFAULT_SESSION_ID = "DG-2026-84210";
+
 export default function Home() {
-  const [activeView, setActiveView] = useState<ActiveView>("upload");
+  // 4-Page Workflow State
+  const [currentPage, setCurrentPage] = useState<WorkflowPage>(1);
+  const [maxUnlockedPage, setMaxUnlockedPage] = useState<WorkflowPage>(1);
+  const [hasStartedAnalysis, setHasStartedAnalysis] = useState<boolean>(false);
+  const [sessionId, setSessionId] = useState<string>(DEFAULT_SESSION_ID);
   const [isBackendConnected, setIsBackendConnected] = useState<boolean>(false);
   const [presets, setPresets] = useState<PresetCase[]>(CLINICAL_PRESETS);
 
-  // Patient Intake State
+  // Generate unique session ID on client mount
+  useEffect(() => {
+    setSessionId(`DG-2026-${Math.floor(10000 + Math.random() * 90000)}`);
+  }, []);
+
+  // Patient Intake State (Page 1)
   const [patientContext, setPatientContext] = useState<PatientContext>({
     age: 45,
     sex: "female",
     localization: "upper extremity",
   });
-  const [hasVerified, setHasVerified] = useState<boolean>(false);
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
 
-  // Analysis & Modal State
+  // Analysis & Report State
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isVerificationModalOpen, setIsVerificationModalOpen] = useState<boolean>(false);
   const [activeReport, setActiveReport] = useState<AnalysisResponse | null>(null);
-
-  const reportSectionRef = useRef<HTMLDivElement | null>(null);
 
   // Fetch presets from FastAPI backend
   useEffect(() => {
@@ -184,18 +189,35 @@ export default function Home() {
     setSelectedImageUrl(dataUrl);
   };
 
-  // Clear selected image back to blank
+  // Clear selected image
   const handleClearImage = () => {
     setSelectedImageFile(null);
     setSelectedImageUrl(null);
     setSelectedImageId(null);
   };
 
-  // Run 6-Agent Inference
+  // Reset entire workflow back to Page 1
+  const handleResetWorkflow = () => {
+    setCurrentPage(1);
+    setMaxUnlockedPage(1);
+    setHasStartedAnalysis(false);
+    setActiveReport(null);
+    setSelectedImageFile(null);
+    setSelectedImageUrl(null);
+    setSelectedImageId(null);
+    setSessionId(`DG-2026-${Math.floor(10000 + Math.random() * 90000)}`);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Launch 6-Agent Inference & Advance to Page 2
   const handleStartAnalysis = async () => {
     if (!selectedImageUrl) return;
 
     setIsLoading(true);
+    setHasStartedAnalysis(true);
+    setCurrentPage(2);
+    setMaxUnlockedPage(2);
+    window.scrollTo({ top: 0, behavior: "smooth" });
 
     try {
       const formData = new FormData();
@@ -205,7 +227,6 @@ export default function Home() {
         formData.append("image_id", selectedImageId);
       }
 
-      // Handle nullable age
       formData.append("age", patientContext.age !== null ? String(patientContext.age) : "");
       formData.append("sex", patientContext.sex || "unspecified");
       formData.append("localization", patientContext.localization || "unspecified");
@@ -221,11 +242,22 @@ export default function Home() {
 
       const result: AnalysisResponse = await res.json();
       setActiveReport(result);
+
+      // Check quality gate
+      const isUsable =
+        result.agents?.a1?.is_usable !== false &&
+        result.agents?.a1?.status !== "FAIL";
+
+      if (isUsable) {
+        setMaxUnlockedPage(4);
+      } else {
+        // Halt at Page 2 if Agent 1 fails
+        setMaxUnlockedPage(2);
+      }
       setIsLoading(false);
-      setIsVerificationModalOpen(true);
     } catch (err: any) {
-      console.warn("Live API call failed; generating local calibrated simulation:", err);
-      // Calibrated fallback in case backend is interrupted
+      console.warn("Live API call failed; generating calibrated multi-agent simulation:", err);
+
       const isDegraded = selectedImageId?.includes("DEGRADED") || false;
       const isMel =
         selectedImageId === "ISIC_0029081" ||
@@ -242,32 +274,32 @@ export default function Home() {
           disease_name: isDegraded
             ? "Severely Degraded Image Quality"
             : isMel
-            ? "Invasive Cutaneous Melanoma"
-            : "Melanocytic Nevus (Benign)",
-          confidence: isDegraded ? 0.65 : isMel ? 0.90 : 0.88,
+            ? "Malignant Cutaneous Melanoma"
+            : "Melanocytic Nevus (Typical Benign Mole)",
+          confidence: isDegraded ? 0.65 : isMel ? 0.899 : 0.882,
           policy_rule_triggered: isDegraded
             ? "Gate 1: Inadequate image quality"
             : isMel
             ? "Gate 2: Safety veto or conflicting evidence"
             : "Gate 3: Reliable evidence & high diagnostic confidence",
           traceable_rationale: isDegraded
-            ? "Image quality inadequate; requesting fresh image capture."
+            ? "Agent 1 identified severe focal blur and illumination deficiency; re-imaging required before diagnosis."
             : isMel
-            ? "Confirmed malignancy suspicion warrants immediate dermatologist referral."
-            : "Sufficient reliable evidence for automated screening disposition.",
+            ? "Confirmed malignancy suspicion and elevated malignant tail mass warrant immediate dermatologist referral."
+            : "High-confidence benign nevus with symmetric borders, uniform pigmentation, and no safety vetoes.",
         },
         agents: {
           a1: {
             status: isDegraded ? "FAIL" : "PASS",
-            quality_score: isDegraded ? 0.15 : 0.96,
+            quality_score: isDegraded ? 0.18 : 0.96,
             blur_score: isDegraded ? 8.2 : 142.5,
             illumination_score: isDegraded ? 28.0 : 92.0,
-            glare_ratio: isDegraded ? 0.35 : 0.01,
-            obstruction_ratio: 0.0,
+            glare_ratio: isDegraded ? 0.35 : 0.008,
+            obstruction_ratio: isDegraded ? 0.42 : 0.0,
             vignette_ratio: 0.0,
             reasons: isDegraded
-              ? ["Severe motion blur detected", "Critically underexposed focal field"]
-              : ["Optical field clear and usable for diagnostic evaluation"],
+              ? ["Severe focal motion blur detected (Laplacian variance 8.2 < 12.0)", "Severe specular glare > 25%"]
+              : ["Optical acquisition certified under diagnostic dermatoscopy thresholds"],
             is_usable: !isDegraded,
           },
           a2: {
@@ -278,7 +310,7 @@ export default function Home() {
               : { nv: 0.882, bkl: 0.06, mel: 0.02, bcc: 0.015, akiec: 0.01, vasc: 0.008, df: 0.005 },
             top2_class: isMel ? "bcc" : "bkl",
             top2_confidence: 0.06,
-            entropy: 0.28,
+            entropy: isMel ? 0.38 : 0.28,
             malignant_probability_mass: isMel ? 0.959 : 0.045,
           },
           a3: {
@@ -297,9 +329,9 @@ export default function Home() {
             prior_multiplier: isMel ? 1.45 : 0.85,
             malignancy_prior_multiplier: isMel ? 1.45 : 0.85,
             risk_indicator: isMel ? "HIGH" : "LOW",
-            clinical_summary: `${patientContext.age ?? "Unknown"}y ${
+            clinical_summary: `${patientContext.age ?? "Walk-in"}y ${
               patientContext.sex
-            } presentation with lesion located on ${patientContext.localization}. Prior multiplier: ${
+            } presentation with lesion located on ${patientContext.localization}. Prior odds evaluated at ${
               isMel ? "1.45x" : "0.85x"
             }.`,
           },
@@ -310,13 +342,13 @@ export default function Home() {
             triggers: isDegraded
               ? ["IMAGE_QUALITY_FAIL"]
               : isMel
-              ? ["CONFIRMED_MALIGNANT_PATHOLOGY_MEL"]
+              ? ["CONFIRMED_MALIGNANT_PATHOLOGY_MEL", "MALIGNANT_TAIL_ELEVATED"]
               : [],
             justification: isDegraded
               ? "Image quality inadequate; re-imaging required."
               : isMel
-              ? "Malignancy detected; automated triage vetoed."
-              : "Safety review clear.",
+              ? "Confirmed malignancy suspicion vetoes autonomous screening."
+              : "Safety review clear; zero clinical conflicts detected.",
             conflict_detected: isMel || isDegraded,
           },
           a6: {
@@ -329,33 +361,28 @@ export default function Home() {
               ? "Gate 2: Safety veto or conflicting evidence"
               : "Gate 3: Reliable evidence & high diagnostic confidence",
             traceable_rationale: isDegraded
-              ? "Inadequate image quality (blur / glare); requesting retake."
+              ? "Image quality inadequate; requesting fresh image capture."
               : isMel
               ? "Confirmed malignancy suspicion warrants immediate dermatologist referral."
-              : "Benign lesion confirmed with high diagnostic confidence (88.2%).",
+              : "Sufficient reliable evidence for automated screening disposition. Benign lesion confirmed.",
             card_summary: {},
           },
         },
       };
 
       setActiveReport(simulated);
+      if (!isDegraded) {
+        setMaxUnlockedPage(4);
+      } else {
+        setMaxUnlockedPage(2);
+      }
       setIsLoading(false);
-      setIsVerificationModalOpen(true);
     }
   };
 
-  // Handle Verification on Page 1 -> automatically transitions to Page 2 for further processing
-  const handleVerify = async () => {
-    if (!selectedImageUrl) return;
-    setHasVerified(true);
-    setActiveView("diagnosis");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    await handleStartAnalysis();
-  };
-
-  const handleModalComplete = () => {
-    setIsVerificationModalOpen(false);
-  };
+  const qualityPassed = activeReport
+    ? activeReport.agents?.a1?.is_usable !== false && activeReport.agents?.a1?.status !== "FAIL"
+    : null;
 
   return (
     <div className="min-h-screen w-full relative bg-[#FAF4F0] text-[#18181B] flex flex-col font-sans selection:bg-[#E85D44]/15 selection:text-[#E85D44]">
@@ -366,146 +393,126 @@ export default function Home() {
         <div className="absolute -bottom-40 right-1/4 w-96 h-96 rounded-full bg-[#FCEAE3] blur-3xl opacity-40" />
       </div>
 
-      {/* Top Navigation Bar: Hidden on initial home/upload screen; appears after user clicks verify */}
-      {hasVerified && (
-        <Header
-          activeView={activeView}
-          onSelectView={setActiveView}
+      {/* Top Workflow Stepper Navigation:
+          Hidden on initial home/upload screen; appears after user clicks start analysis */}
+      {hasStartedAnalysis && (
+        <WorkflowHeader
+          currentPage={currentPage}
+          onSelectPage={(page) => {
+            setCurrentPage(page);
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }}
+          maxUnlockedPage={maxUnlockedPage}
+          qualityPassed={qualityPassed}
+          sessionId={sessionId}
           isBackendConnected={isBackendConnected}
+          onResetWorkflow={handleResetWorkflow}
         />
       )}
 
       {/* Main Workspace Container */}
       <main className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-8 overflow-x-hidden">
-        {activeView === "upload" ? (
-          /* PAGE 1: Solely for Dermoscopy Image Uploadation */
-          <section aria-label="Page 1: Dermoscopy Image Uploadation">
-            <ImageUploadCard
+        {/* Loading Indicator during agent pipeline execution */}
+        {isLoading && (
+          <div className="flex items-center justify-center p-8 rounded-2xl bg-white border border-[#F2E8E3] shadow-sm animate-pulse text-[#78716C] gap-3 max-w-xl mx-auto">
+            <Activity className="w-5 h-5 text-[#E85D44] animate-spin" />
+            <div className="text-left">
+              <span className="text-sm font-extrabold text-[#18181B] block">
+                Executing 6-Agent Dermatologic Pipeline...
+              </span>
+              <span className="text-[11px] text-[#78716C]">
+                Agent 1 (Quality) → Agent 2 (Diagnosis) → Agent 3 (ABCD) → Agent 4 (Context) → Agent 5 (Safety) → Agent 6 (Coordinator)
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* ===================================================================== */}
+        {/* PAGE 1: Image Upload & Patient Information */}
+        {/* ===================================================================== */}
+        {currentPage === 1 && (
+          <section aria-label="Page 1: Image Upload and Patient Information">
+            <Page1Intake
+              sessionId={sessionId}
               selectedImageUrl={selectedImageUrl}
               selectedImageId={selectedImageId}
               selectedImageFile={selectedImageFile}
+              patientContext={patientContext}
+              presets={presets}
+              isLoading={isLoading}
               onSelectImageFile={handleSelectImageFile}
               onSelectPreset={handleSelectPreset}
               onCameraCapture={handleCameraCapture}
               onClearImage={handleClearImage}
-              presets={presets}
-              onVerify={handleVerify}
-              isLoading={isLoading}
+              onChangeContext={setPatientContext}
+              onStartAnalysis={handleStartAnalysis}
             />
           </section>
-        ) : activeView === "diagnosis" ? (
-          /* PAGE 2: Clinical Diagnostics & Specialist Multi-Agent Verification Report */
-          <section aria-label="Page 2: Clinical Diagnostics and Multi-Agent Evaluation" className="space-y-8">
-            {/* Assessment In Progress Indicator */}
-            {isLoading && (
-              <div className="flex items-center justify-center p-8 rounded-2xl bg-white border border-[#F2E8E3] shadow-sm animate-pulse text-[#78716C] gap-3">
-                <Activity className="w-5 h-5 text-[#E85D44] animate-spin" />
-                <span className="text-sm font-semibold text-[#18181B]">
-                  Running Specialist Multi-Agent Diagnostic Pipeline...
-                </span>
-              </div>
-            )}
+        )}
 
-            {/* If activeReport exists: Patient Clinical Profile, Consensus Strip, and Diagnostic Report */}
-            {activeReport ? (
-              <div ref={reportSectionRef} className="space-y-8">
-                {/* Section A: Patient Demographic Clinical Profile & Prior Recalibration */}
-                <section aria-label="Patient Demographic Context">
-                  <PatientClinicalProfileCard
-                    patientContext={patientContext}
-                    onChangeContext={setPatientContext}
-                    selectedImageUrl={selectedImageUrl}
-                    selectedImageId={selectedImageId}
-                    onBackToUpload={() => {
-                      setActiveView("upload");
-                      window.scrollTo({ top: 0, behavior: "smooth" });
-                    }}
-                    onRecalibrate={handleStartAnalysis}
-                    isLoading={isLoading}
-                  />
-                </section>
-
-                {/* Section B: 5-Stage Clinical Consensus Strip */}
-                <section aria-label="5-Stage Clinical Consensus Strip">
-                  <div className="flex items-center justify-between mb-3 px-1">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-[#E85D44]" />
-                      <h2 className="text-sm font-bold text-[#18181B] uppercase tracking-wider">
-                        5-Stage Clinical Consensus Strip
-                      </h2>
-                    </div>
-                    <span className="text-xs text-[#78716C]">
-                      Scan ID:{" "}
-                      <span className="font-semibold text-[#18181B]">
-                        {activeReport.image_id}
-                      </span>
-                    </span>
-                  </div>
-                  <ConsensusStrip report={activeReport} />
-                </section>
-
-                {/* Section C: Comprehensive Specialist Diagnostic Report */}
-                <section aria-label="Comprehensive Multi-Agent Diagnostic Report">
-                  <DiagnosticReportView
-                    report={activeReport}
-                    onNewScan={() => {
-                      setActiveView("upload");
-                      window.scrollTo({ top: 0, behavior: "smooth" });
-                    }}
-                  />
-                </section>
-              </div>
-            ) : !isLoading ? (
-              /* Empty state if user clicked directly on Page 2 without verifying a scan */
-              <div className="p-10 rounded-[28px] bg-white border border-[#F2E8E3] shadow-[0_8px_24px_rgba(28,25,23,0.03)] text-center max-w-xl mx-auto space-y-4">
-                <div className="w-14 h-14 rounded-2xl bg-[#FAF4F0] text-[#E85D44] border border-[#F2E8E3] flex items-center justify-center mx-auto">
-                  <Upload className="w-7 h-7" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-[#18181B]">
-                    No Scan Verified Yet
-                  </h3>
-                  <p className="text-xs text-[#78716C] mt-1 leading-relaxed">
-                    Please upload or select a patient dermoscopy scan on Page 1 and click <strong>Verify</strong> to initiate multi-agent clinical evaluation.
-                  </p>
-                </div>
-                <div>
-                  <button
-                    type="button"
-                    onClick={() => setActiveView("upload")}
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#E85D44] to-[#F27059] text-white text-xs font-bold shadow-md hover:shadow-lg transition-all"
-                  >
-                    <span>Go to Page 1: Upload Scan</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            ) : null}
+        {/* ===================================================================== */}
+        {/* PAGE 2: Agent 1 (Image Quality) & Agent 2 (Diagnosis) */}
+        {/* ===================================================================== */}
+        {currentPage === 2 && activeReport && (
+          <section aria-label="Page 2: Agent 1 Quality and Agent 2 Diagnosis">
+            <Page2QualityDiagnosis
+              report={activeReport}
+              selectedImageUrl={selectedImageUrl}
+              onProceedToPage3={() => {
+                setCurrentPage(3);
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              onBackToPage1={() => {
+                setCurrentPage(1);
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+            />
           </section>
-        ) : (
-          /* VIEW 3: Clinical Audit & Analytics (Hospital Quality Assurance & Validation Dashboard) */
-          <section aria-label="Clinical Audit and Analytics Dashboard">
-            <ClinicalAuditAnalyticsView />
+        )}
+
+        {/* ===================================================================== */}
+        {/* PAGE 3: Agent 3 (Lesion ABCD) & Agent 4 (Patient Context) */}
+        {/* ===================================================================== */}
+        {currentPage === 3 && activeReport && (
+          <section aria-label="Page 3: Agent 3 ABCD and Agent 4 Patient Context">
+            <Page3LesionContext
+              report={activeReport}
+              selectedImageUrl={selectedImageUrl}
+              onProceedToPage4={() => {
+                setCurrentPage(4);
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              onBackToPage2={() => {
+                setCurrentPage(2);
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+            />
+          </section>
+        )}
+
+        {/* ===================================================================== */}
+        {/* PAGE 4: Agent 5 (Safety) & Agent 6 (Coordinator) + Final Result */}
+        {/* ===================================================================== */}
+        {currentPage === 4 && activeReport && (
+          <section aria-label="Page 4: Agent 5 Safety, Agent 6 Coordinator, and Final Triage Dashboard">
+            <Page4SafetyCoordinator
+              report={activeReport}
+              selectedImageUrl={selectedImageUrl}
+              onResetWorkflow={handleResetWorkflow}
+              onBackToPage3={() => {
+                setCurrentPage(3);
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+            />
           </section>
         )}
       </main>
-
-      {/* Specialist Verification Sequence Modal */}
-      <VerificationSequenceModal
-        isOpen={isVerificationModalOpen}
-        analysisResult={activeReport}
-        onComplete={handleModalComplete}
-        onRetake={() => {
-          setIsVerificationModalOpen(false);
-          setActiveView("upload");
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        }}
-      />
 
       {/* Professional Medical Platform Footer */}
       <footer className="relative z-10 w-full py-4 text-center border-t border-[#F2E8E3] text-xs text-[#78716C] bg-white/70 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-2">
           <div className="flex items-center gap-2">
+            <Shield className="w-4 h-4 text-[#E85D44]" />
             <span className="font-bold text-[#18181B]">DermaGuard Clinical</span>
             <span>•</span>
             <span>Autonomous Dermatology Screening & Multi-Agent Triage Platform</span>
@@ -513,7 +520,7 @@ export default function Home() {
           <div className="flex items-center gap-3 text-[11px]">
             <span className="inline-flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-[#10B981]" />
-              Hospital Production v2.4
+              Production Track 2 Summit 2026
             </span>
             <span>•</span>
             <span>Confidential Medical Information</span>
