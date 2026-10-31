@@ -60,7 +60,7 @@ export default function Page2QualityDiagnosis({
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#E85D44]/10 text-[#E85D44]">
-              PAGE 2 OF 4
+              PAGE 2 OF 5
             </span>
             <span className="text-xs text-[#78716C] font-semibold">
               Scan ID: <strong className="text-[#18181B]">{report.image_id}</strong>

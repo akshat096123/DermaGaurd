@@ -100,7 +100,7 @@ export default function Page1Intake({
                   DermaGuard <span className="text-[#E85D44]">Clinical</span>
                 </span>
                 <span className="px-2.5 py-0.5 text-xs font-black tracking-wide uppercase rounded-full bg-[#E85D44]/10 text-[#E85D44] border border-[#E85D44]/20 shadow-xs">
-                  PAGE 1 OF 4
+                  PAGE 1 OF 5
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-[#78716C] font-semibold mt-0.5">

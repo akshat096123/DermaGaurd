@@ -451,6 +451,8 @@ export default function DermaHologramAssistant({
       onNavigatePage?.(3);
     } else if (lower.includes("page 4") || lower.includes("safety") || lower.includes("coordinator")) {
       onNavigatePage?.(4);
+    } else if (lower.includes("page 5") || lower.includes("audit") || lower.includes("benchmark")) {
+      onNavigatePage?.(5);
     }
 
     const userMsg: Message = {

@@ -30,6 +30,7 @@ interface Page4SafetyCoordinatorProps {
   selectedImageUrl: string | null;
   onResetWorkflow: () => void;
   onBackToPage3: () => void;
+  onProceedToPage5?: () => void;
 }
 
 export default function Page4SafetyCoordinator({
@@ -37,6 +38,7 @@ export default function Page4SafetyCoordinator({
   selectedImageUrl,
   onResetWorkflow,
   onBackToPage3,
+  onProceedToPage5,
 }: Page4SafetyCoordinatorProps) {
   const [viewMode, setViewMode] = useState<"2d" | "3d">("2d");
 
@@ -98,7 +100,7 @@ export default function Page4SafetyCoordinator({
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#E85D44]/10 text-[#E85D44]">
-              PAGE 4 OF 4
+              PAGE 4 OF 5
             </span>
             <span className="text-xs text-[#78716C] font-semibold">
               Scan ID: <strong className="text-[#18181B]">{report.image_id}</strong>
@@ -604,17 +606,28 @@ export default function Page4SafetyCoordinator({
           className="w-full sm:w-auto px-5 py-3 rounded-xl bg-white border border-[#F2E8E3] hover:border-[#E5DCD4] text-xs font-bold text-[#18181B] flex items-center justify-center gap-2 shadow-sm transition-all"
         >
           <ArrowLeft className="w-4 h-4 text-[#78716C]" />
-          <span>← Back to Page 3 (Lesion Analysis Agent & Reasoning / Context Agent)</span>
+          <span>← Back to Page 3 (Lesion & Context)</span>
         </button>
 
-        <button
-          type="button"
-          onClick={onResetWorkflow}
-          className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-[#E85D44] to-[#F27059] text-white text-xs font-extrabold shadow-md hover:shadow-lg flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.99] transition-all"
-        >
-          <RotateCcw className="w-4 h-4" />
-          <span>Start New Patient Analysis (Return to Page 1)</span>
-        </button>
+        <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full sm:w-auto">
+          <button
+            type="button"
+            onClick={onResetWorkflow}
+            className="w-full sm:w-auto px-4 py-3 rounded-xl bg-white border border-[#F2E8E3] hover:border-[#E5DCD4] text-xs font-bold text-[#78716C] hover:text-[#E85D44] flex items-center justify-center gap-2 shadow-sm transition-all"
+          >
+            <RotateCcw className="w-4 h-4" />
+            <span>New Patient</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={onProceedToPage5}
+            className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-[#E85D44] to-[#F27059] text-white text-xs font-extrabold shadow-md hover:shadow-lg flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.99] transition-all"
+          >
+            <span>Proceed to Page 5: Results & Benchmark</span>
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
       </div>
     </div>
   );

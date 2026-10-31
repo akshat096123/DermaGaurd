@@ -53,6 +53,12 @@ const STEPS = [
     subtitle: "Safety Agent & Coordinator Agent",
     icon: CheckCircle2,
   },
+  {
+    page: 5 as WorkflowPage,
+    title: "Page 5: Results & Benchmark",
+    subtitle: "Clinical Audit & Validation Results",
+    icon: BarChart3,
+  },
 ];
 
 export default function WorkflowHeader({
@@ -91,7 +97,7 @@ export default function WorkflowHeader({
           </div>
 
           <div className="flex items-center gap-2.5 self-end sm:self-auto text-xs">
-            {/* View Mode Toggle: Screening vs 3D Body Map vs Results */}
+            {/* View Mode Toggle: Screening vs 3D Body Map */}
             <div className="flex items-center p-0.5 rounded-xl bg-[#FAF4F0] border border-[#F2E8E3] shadow-xs">
               <button
                 type="button"
@@ -116,18 +122,6 @@ export default function WorkflowHeader({
               >
                 <User className="w-3.5 h-3.5" />
                 <span>3D Body Map</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => onToggleViewMode?.("results")}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-[11px] font-bold transition-all ${
-                  viewMode === "results"
-                    ? "bg-gradient-to-r from-[#10B981] to-[#059669] text-white shadow-xs"
-                    : "text-[#78716C] hover:text-[#18181B]"
-                }`}
-              >
-                <BarChart3 className="w-3.5 h-3.5" />
-                <span>Results</span>
               </button>
             </div>
 
@@ -160,27 +154,28 @@ export default function WorkflowHeader({
           </div>
         </div>
 
-        {/* 4-Page Workflow Progression Stepper with Connected Progress Line */}
+        {/* 5-Page Workflow Progression Stepper with Connected Progress Line */}
         <div className="relative pt-2.5">
           {/* Subtle glowing connector line behind steps (desktop) */}
-          <div className="hidden md:block absolute top-[28px] left-[10%] right-[10%] h-[2px] bg-[#F2E8E3] z-0">
+          <div className="hidden md:block absolute top-[28px] left-[8%] right-[8%] h-[2px] bg-[#F2E8E3] z-0">
             <div
               className="h-full bg-gradient-to-r from-[#10B981] via-[#E85D44] to-[#F27059] transition-all duration-500 ease-out"
               style={{
                 width: `${
                   currentPage === 1 ? "0%" :
-                  currentPage === 2 ? "33%" :
-                  currentPage === 3 ? "66%" : "100%"
+                  currentPage === 2 ? "25%" :
+                  currentPage === 3 ? "50%" :
+                  currentPage === 4 ? "75%" : "100%"
                 }`,
               }}
             />
           </div>
 
-          <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-2.5">
+          <div className="relative z-10 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-2.5">
             {STEPS.map((step) => {
               const isCurrent = currentPage === step.page;
               const isCompleted = currentPage > step.page && (step.page === 1 || qualityPassed !== false);
-              const isLocked = step.page > maxUnlockedPage || (step.page > 2 && qualityPassed === false);
+              const isLocked = (step.page > maxUnlockedPage && step.page !== 5) || (step.page > 2 && qualityPassed === false && step.page !== 5);
               const isFailedGate = step.page === 2 && qualityPassed === false;
 
               const Icon = step.icon;

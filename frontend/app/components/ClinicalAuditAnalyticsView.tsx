@@ -17,6 +17,8 @@ import {
   BarChart3,
   Layers,
   ArrowRight,
+  ArrowLeft,
+  RotateCcw,
 } from "lucide-react";
 
 // =========================================================================
@@ -297,7 +299,15 @@ const HIDDEN_200_CONFUSION_MATRIX: number[][] = [
   [0, 0, 0, 0, 0, 0, 3],
 ];
 
-export default function ClinicalAuditAnalyticsView() {
+interface ClinicalAuditAnalyticsViewProps {
+  onBackToPage4?: () => void;
+  onResetWorkflow?: () => void;
+}
+
+export default function ClinicalAuditAnalyticsView({
+  onBackToPage4,
+  onResetWorkflow,
+}: ClinicalAuditAnalyticsViewProps = {}) {
   const [selectedCohort, setSelectedCohort] = useState<"eval1942" | "hidden200">("eval1942");
   const [hoveredCell, setHoveredCell] = useState<{
     row: number;
@@ -323,9 +333,14 @@ export default function ClinicalAuditAnalyticsView() {
       <section className="relative overflow-hidden rounded-[32px] p-6 sm:p-8 bg-white/90 backdrop-blur-xl border border-[#F2E8E3] shadow-[0_12px_36px_rgba(28,25,23,0.05)]">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="space-y-2 max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E85D44]/10 text-[#E85D44] text-xs font-extrabold uppercase tracking-wider">
-              <ShieldCheck className="w-4 h-4" />
-              <span>Diagnostic Reliability & Clinical Audit Report</span>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#E85D44]/10 text-[#E85D44]">
+                PAGE 5 OF 5
+              </span>
+              <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-[#E85D44]/10 text-[#E85D44] text-xs font-extrabold uppercase tracking-wider">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>Diagnostic Reliability & Clinical Audit Report</span>
+              </div>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-[#18181B] tracking-tight">
               Test Data Benchmark Results & Safety Triage Metrics
@@ -667,6 +682,33 @@ export default function ClinicalAuditAnalyticsView() {
           HIPAA & GCMLP Validated Audit System
         </div>
       </section>
+
+      {/* Navigation Footer for Page 5 */}
+      {(onBackToPage4 || onResetWorkflow) && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+          {onBackToPage4 ? (
+            <button
+              type="button"
+              onClick={onBackToPage4}
+              className="w-full sm:w-auto px-5 py-3 rounded-xl bg-white border border-[#F2E8E3] hover:border-[#E5DCD4] text-xs font-bold text-[#18181B] flex items-center justify-center gap-2 shadow-sm transition-all"
+            >
+              <ArrowLeft className="w-4 h-4 text-[#78716C]" />
+              <span>← Back to Page 4 (Safety & Coordinator)</span>
+            </button>
+          ) : <div />}
+
+          {onResetWorkflow && (
+            <button
+              type="button"
+              onClick={onResetWorkflow}
+              className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-[#E85D44] to-[#F27059] text-white text-xs font-extrabold shadow-md hover:shadow-lg flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.99] transition-all"
+            >
+              <RotateCcw className="w-4 h-4" />
+              <span>Start New Patient Analysis (Return to Page 1)</span>
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

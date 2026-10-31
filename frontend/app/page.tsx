@@ -253,7 +253,7 @@ export default function Home() {
         result.agents?.a1?.status !== "FAIL";
 
       if (isUsable) {
-        setMaxUnlockedPage(4);
+        setMaxUnlockedPage(5);
       } else {
         // Halt at Page 2 if Image Quality Agent fails
         setMaxUnlockedPage(2);
@@ -374,7 +374,7 @@ export default function Home() {
 
       setActiveReport(simulated);
       if (!isDegraded) {
-        setMaxUnlockedPage(4);
+        setMaxUnlockedPage(5);
       } else {
         setMaxUnlockedPage(2);
       }
@@ -423,7 +423,18 @@ export default function Home() {
         {/* Results & Benchmark Audit View */}
         {viewMode === "results" ? (
           <section aria-label="Clinical Validation Results & Benchmark Audit">
-            <ClinicalAuditAnalyticsView />
+            <ClinicalAuditAnalyticsView
+              onBackToPage4={() => {
+                setViewMode("workflow");
+                if (activeReport) {
+                  setCurrentPage(4);
+                } else {
+                  setCurrentPage(1);
+                }
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              onResetWorkflow={handleResetWorkflow}
+            />
           </section>
         ) : viewMode === "bodymap" ? (
           <section aria-label="3D Human Body Map & Skin Log">
@@ -534,10 +545,33 @@ export default function Home() {
                   report={activeReport}
                   selectedImageUrl={selectedImageUrl}
                   onResetWorkflow={handleResetWorkflow}
+                  onProceedToPage5={() => {
+                    setCurrentPage(5);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
                   onBackToPage3={() => {
                     setCurrentPage(3);
                     window.scrollTo({ top: 0, behavior: "smooth" });
                   }}
+                />
+              </section>
+            )}
+
+            {/* ===================================================================== */}
+            {/* PAGE 5: Benchmark Results & Clinical Audit */}
+            {/* ===================================================================== */}
+            {currentPage === 5 && (
+              <section aria-label="Page 5: Clinical Audit, Results & Benchmark">
+                <ClinicalAuditAnalyticsView
+                  onBackToPage4={() => {
+                    if (activeReport) {
+                      setCurrentPage(4);
+                    } else {
+                      setCurrentPage(1);
+                    }
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  onResetWorkflow={handleResetWorkflow}
                 />
               </section>
             )}
@@ -559,7 +593,8 @@ export default function Home() {
           window.scrollTo({ top: 0, behavior: "smooth" });
         }}
         onOpenResults={() => {
-          setViewMode("results");
+          setViewMode("workflow");
+          setCurrentPage(5);
           window.scrollTo({ top: 0, behavior: "smooth" });
         }}
       />
