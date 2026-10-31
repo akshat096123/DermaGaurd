@@ -16,7 +16,7 @@
 }
 
 body {
-  background-color: #FAF5F0;
+  background-color: #F8F9FA;
   color: #18181B;
   font-family: var(--font-sans, "Plus Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
   min-height: 100vh;
@@ -24,14 +24,13 @@ body {
   overflow-x: hidden;
 }
 
-/* Multi-layered organic medical mesh gradient background */
+/* Multi-layered clinical medical mesh background */
 .bg-mesh-canvas {
   background: 
-    radial-gradient(circle at 10% 15%, rgba(242, 112, 89, 0.12) 0%, transparent 45%),
-    radial-gradient(circle at 90% 10%, rgba(13, 148, 136, 0.08) 0%, transparent 40%),
-    radial-gradient(circle at 50% 80%, rgba(252, 234, 227, 0.7) 0%, transparent 60%),
-    radial-gradient(circle at 85% 85%, rgba(242, 112, 89, 0.08) 0%, transparent 45%),
-    #FAF5F0;
+    radial-gradient(circle at 10% 15%, rgba(13, 148, 136, 0.06) 0%, transparent 45%),
+    radial-gradient(circle at 90% 10%, rgba(59, 130, 246, 0.05) 0%, transparent 40%),
+    radial-gradient(circle at 50% 80%, rgba(240, 244, 248, 0.6) 0%, transparent 60%),
+    #F8F9FA;
 }
 
 /* Subtle architectural dot grid */

@@ -385,12 +385,18 @@ export default function Home() {
     : null;
 
   return (
-    <div className="min-h-screen w-full relative bg-[#FAF4F0] text-[#18181B] flex flex-col font-sans selection:bg-[#E85D44]/15 selection:text-[#E85D44]">
-      {/* Warm Ambient Radial Accents */}
+    <div className="min-h-screen w-full relative bg-[#F8F9FA] text-[#18181B] flex flex-col font-sans selection:bg-[#E85D44]/15 selection:text-[#E85D44]">
+      {/* Translucent Medical Dermatology Cellular Texture Backdrop */}
+      <div
+        className="fixed inset-0 pointer-events-none z-0 bg-cover bg-center bg-no-repeat opacity-[0.28] mix-blend-multiply"
+        style={{ backgroundImage: "url('/dermatology_bg.jpg')" }}
+      />
+
+      {/* Clean Clinical Ambient Accents (Teal & Slate) */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-[#FCEAE3] blur-3xl opacity-60" />
-        <div className="absolute top-1/3 -left-40 w-96 h-96 rounded-full bg-[#F4A28C]/15 blur-3xl opacity-50" />
-        <div className="absolute -bottom-40 right-1/4 w-96 h-96 rounded-full bg-[#FCEAE3] blur-3xl opacity-40" />
+        <div className="absolute -top-32 -right-32 w-[550px] h-[550px] rounded-full bg-[#0D9488]/8 blur-[100px]" />
+        <div className="absolute top-1/3 -left-32 w-[500px] h-[500px] rounded-full bg-[#3B82F6]/5 blur-[110px]" />
+        <div className="absolute -bottom-32 right-1/3 w-[600px] h-[600px] rounded-full bg-[#0D9488]/6 blur-[120px]" />
       </div>
 
       {/* Top Workflow Stepper Navigation:
