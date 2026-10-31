@@ -275,7 +275,7 @@ export default function PatientIntakeCard({
               Patient Clinical Profile
             </h2>
             <p className="text-xs text-[#78716C] mt-0.5">
-              Demographic variables calibrate Agent 4 Bayesian epidemiological priors.
+              Demographic variables calibrate 4. Reasoning / Context Agent Bayesian epidemiological priors.
             </p>
           </div>
 

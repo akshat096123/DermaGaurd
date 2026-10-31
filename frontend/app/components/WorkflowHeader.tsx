@@ -35,19 +35,19 @@ const STEPS = [
   {
     page: 2 as WorkflowPage,
     title: "Page 2: Quality & Diagnosis",
-    subtitle: "Agent 1 (Quality) & Agent 2 (Diagnosis)",
+    subtitle: "1. Image Quality Agent & 2. Diagnosis Agent",
     icon: Search,
   },
   {
     page: 3 as WorkflowPage,
     title: "Page 3: Lesion & Context",
-    subtitle: "Agent 3 (ABCD) & Agent 4 (Context Risk)",
+    subtitle: "3. Lesion Analysis Agent & 4. Reasoning / Context Agent",
     icon: Activity,
   },
   {
     page: 4 as WorkflowPage,
     title: "Page 4: Safety & Coordinator",
-    subtitle: "Agent 5 (Safety) & Agent 6 (Triage Dashboard)",
+    subtitle: "5. Safety Agent & 6. Coordinator Agent",
     icon: CheckCircle2,
   },
 ];

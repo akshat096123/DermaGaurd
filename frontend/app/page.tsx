@@ -251,7 +251,7 @@ export default function Home() {
       if (isUsable) {
         setMaxUnlockedPage(4);
       } else {
-        // Halt at Page 2 if Agent 1 fails
+        // Halt at Page 2 if Image Quality Agent fails
         setMaxUnlockedPage(2);
       }
       setIsLoading(false);
@@ -283,7 +283,7 @@ export default function Home() {
             ? "Gate 2: Safety veto or conflicting evidence"
             : "Gate 3: Reliable evidence & high diagnostic confidence",
           traceable_rationale: isDegraded
-            ? "Agent 1 identified severe focal blur and illumination deficiency; re-imaging required before diagnosis."
+            ? "1. Image Quality Agent identified severe focal blur and illumination deficiency; re-imaging required before diagnosis."
             : isMel
             ? "Confirmed malignancy suspicion and elevated malignant tail mass warrant immediate dermatologist referral."
             : "High-confidence benign nevus with symmetric borders, uniform pigmentation, and no safety vetoes.",
@@ -421,7 +421,7 @@ export default function Home() {
                 Executing 6-Agent Dermatologic Pipeline...
               </span>
               <span className="text-[11px] text-[#78716C]">
-                Agent 1 (Quality) → Agent 2 (Diagnosis) → Agent 3 (ABCD) → Agent 4 (Context) → Agent 5 (Safety) → Agent 6 (Coordinator)
+                1. Image Quality Agent → 2. Diagnosis Agent → 3. Lesion Analysis Agent → 4. Reasoning / Context Agent → 5. Safety Agent → 6. Coordinator Agent
               </span>
             </div>
           </div>
@@ -451,10 +451,10 @@ export default function Home() {
         )}
 
         {/* ===================================================================== */}
-        {/* PAGE 2: Agent 1 (Image Quality) & Agent 2 (Diagnosis) */}
+        {/* PAGE 2: 1. Image Quality Agent & 2. Diagnosis Agent */}
         {/* ===================================================================== */}
         {currentPage === 2 && activeReport && (
-          <section aria-label="Page 2: Agent 1 Quality and Agent 2 Diagnosis">
+          <section aria-label="Page 2: 1. Image Quality Agent & 2. Diagnosis Agent">
             <Page2QualityDiagnosis
               report={activeReport}
               selectedImageUrl={selectedImageUrl}
@@ -471,10 +471,10 @@ export default function Home() {
         )}
 
         {/* ===================================================================== */}
-        {/* PAGE 3: Agent 3 (Lesion ABCD) & Agent 4 (Patient Context) */}
+        {/* PAGE 3: 3. Lesion Analysis Agent & 4. Reasoning / Context Agent */}
         {/* ===================================================================== */}
         {currentPage === 3 && activeReport && (
-          <section aria-label="Page 3: Agent 3 ABCD and Agent 4 Patient Context">
+          <section aria-label="Page 3: 3. Lesion Analysis Agent & 4. Reasoning / Context Agent">
             <Page3LesionContext
               report={activeReport}
               selectedImageUrl={selectedImageUrl}
@@ -491,10 +491,10 @@ export default function Home() {
         )}
 
         {/* ===================================================================== */}
-        {/* PAGE 4: Agent 5 (Safety) & Agent 6 (Coordinator) + Final Result */}
+        {/* PAGE 4: 5. Safety Agent & 6. Coordinator Agent + Final Result */}
         {/* ===================================================================== */}
         {currentPage === 4 && activeReport && (
-          <section aria-label="Page 4: Agent 5 Safety, Agent 6 Coordinator, and Final Triage Dashboard">
+          <section aria-label="Page 4: 5. Safety Agent & 6. Coordinator Agent + Final Result">
             <Page4SafetyCoordinator
               report={activeReport}
               selectedImageUrl={selectedImageUrl}

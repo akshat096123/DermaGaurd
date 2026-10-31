@@ -105,7 +105,7 @@ export default function Page4SafetyCoordinator({
             </span>
           </div>
           <h1 className="text-xl sm:text-2xl font-extrabold text-[#18181B] tracking-tight mt-1">
-            Agent 5 (Safety) & Agent 6 (Coordinator) + Final Result
+            5. Safety Agent & 6. Coordinator Agent + Final Result
           </h1>
           <p className="text-xs text-[#78716C]">
             Deterministic safety guardrails, cross-agent veto arbitration, and executive clinical triage dashboard.
@@ -138,7 +138,7 @@ export default function Page4SafetyCoordinator({
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-base font-extrabold text-[#18181B]">
-                  Agent 5: Safety Agent
+                  5. Safety Agent
                 </h2>
                 <span
                   className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
@@ -225,7 +225,7 @@ export default function Page4SafetyCoordinator({
               )}
             </div>
             <p className="text-[10px] text-[#78716C]">
-              Checks concordance between Agent 2 (Diagnosis) & Agent 3 (ABCD).
+              Checks concordance between 2. Diagnosis Agent & 3. Lesion Analysis Agent.
             </p>
           </div>
 
@@ -284,7 +284,7 @@ export default function Page4SafetyCoordinator({
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-base font-extrabold text-[#18181B]">
-                  Agent 6: Coordinator Agent
+                  6. Coordinator Agent
                 </h2>
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#E85D44]/15 text-[#E85D44]">
                   Chief Triage Arbiter
@@ -604,7 +604,7 @@ export default function Page4SafetyCoordinator({
           className="w-full sm:w-auto px-5 py-3 rounded-xl bg-white border border-[#F2E8E3] hover:border-[#E5DCD4] text-xs font-bold text-[#18181B] flex items-center justify-center gap-2 shadow-sm transition-all"
         >
           <ArrowLeft className="w-4 h-4 text-[#78716C]" />
-          <span>← Back to Page 3 (Lesion & Context)</span>
+          <span>← Back to Page 3 (3. Lesion Analysis Agent & 4. Reasoning / Context Agent)</span>
         </button>
 
         <button

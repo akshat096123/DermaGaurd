@@ -397,7 +397,7 @@ export default function Page1Intake({
                 ))}
               </div>
               <p className="text-[10px] text-[#A8A29E]">
-                Used by Agent 4 for epidemiological risk stratification.
+                Used by 4. Reasoning / Context Agent for epidemiological risk stratification.
               </p>
             </div>
 
@@ -445,7 +445,7 @@ export default function Page1Intake({
               </h2>
             </div>
             <span className="text-[11px] text-[#78716C]">
-              Transfers to <strong>Page 2 (Agent 1 & Agent 2)</strong>
+              Transfers to <strong>Page 2 (1. Image Quality Agent & 2. Diagnosis Agent)</strong>
             </span>
           </div>
 
@@ -481,7 +481,7 @@ export default function Page1Intake({
           </button>
 
           <p className="text-[11px] text-[#A8A29E] text-center font-medium">
-            Clinical Workflow: <strong>Page 1 (Intake)</strong> → <strong>Page 2 (A1 Quality & A2 Diagnosis)</strong> → <strong>Page 3 (A3 ABCD & A4 Context)</strong> → <strong>Page 4 (A5 Safety & A6 Coordinator)</strong>
+            Clinical Workflow: <strong>Page 1 (Intake)</strong> → <strong>Page 2 (Image Quality & Diagnosis)</strong> → <strong>Page 3 (Lesion Analysis & Context)</strong> → <strong>Page 4 (Safety & Coordinator)</strong>
           </p>
         </div>
       </div>
