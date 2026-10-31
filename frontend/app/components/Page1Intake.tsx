@@ -87,7 +87,7 @@ export default function Page1Intake({
   return (
     <div className="w-full max-w-5xl mx-auto space-y-6">
       {/* Brand Header Banner for Page 1 */}
-      <div className="rounded-[28px] bg-white border border-[#F2E8E3] shadow-[0_12px_36px_rgba(28,25,23,0.05)] p-6 sm:p-8 space-y-6">
+      <div className="rounded-[32px] bg-white/90 backdrop-blur-xl border border-white/80 shadow-[0_16px_45px_-6px_rgba(28,25,23,0.06)] hover:shadow-[0_20px_55px_-6px_rgba(28,25,23,0.08)] p-6 sm:p-8 space-y-6 transition-all duration-300">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#F2E8E3] gap-4">
           <div className="flex items-center gap-3">
             <div className="relative flex items-center justify-center w-11 h-11 rounded-2xl bg-gradient-to-br from-[#E85D44] via-[#F27059] to-[#D4472E] text-white shadow-md shadow-[#E85D44]/25 shrink-0">

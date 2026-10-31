@@ -94,7 +94,7 @@ export default function Page4SafetyCoordinator({
   return (
     <div className="w-full max-w-5xl mx-auto space-y-6">
       {/* Page Title & Breadcrumb Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5 rounded-2xl bg-white border border-[#F2E8E3] shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5 rounded-2xl bg-white/90 backdrop-blur-xl border border-white/80 shadow-[0_12px_36px_-6px_rgba(28,25,23,0.05)]">
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#E85D44]/10 text-[#E85D44]">
@@ -114,7 +114,7 @@ export default function Page4SafetyCoordinator({
 
         {/* Disposition Badge */}
         <div
-          className={`px-4 py-2 rounded-xl border text-xs font-black uppercase tracking-wider self-start sm:self-auto ${
+          className={`px-4 py-2 rounded-xl border text-xs font-black uppercase tracking-wider self-start sm:self-auto shadow-xs ${
             isAutoTriage
               ? "bg-[#10B981]/15 text-[#047857] border-[#10B981]/40"
               : isRefer
@@ -129,7 +129,7 @@ export default function Page4SafetyCoordinator({
       {/* ========================================================================= */}
       {/* AGENT 5: SAFETY AGENT */}
       {/* ========================================================================= */}
-      <div className="rounded-[28px] bg-white border border-[#F2E8E3] shadow-sm p-6 sm:p-7 space-y-5">
+      <div className="rounded-[32px] bg-white/90 backdrop-blur-xl border border-white/80 shadow-[0_16px_45px_-6px_rgba(28,25,23,0.06)] hover:shadow-[0_20px_55px_-6px_rgba(28,25,23,0.08)] p-6 sm:p-7 space-y-5 transition-all duration-300">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-[#F2E8E3] gap-2">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-[#E11D48] text-white flex items-center justify-center font-bold shrink-0 shadow-sm">
@@ -275,7 +275,7 @@ export default function Page4SafetyCoordinator({
       {/* ========================================================================= */}
       {/* AGENT 6: COORDINATOR AGENT */}
       {/* ========================================================================= */}
-      <div className="rounded-[28px] bg-white border border-[#F2E8E3] shadow-sm p-6 sm:p-7 space-y-5">
+      <div className="rounded-[32px] bg-white/90 backdrop-blur-xl border border-white/80 shadow-[0_16px_45px_-6px_rgba(28,25,23,0.06)] hover:shadow-[0_20px_55px_-6px_rgba(28,25,23,0.08)] p-6 sm:p-7 space-y-5 transition-all duration-300">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-[#F2E8E3] gap-2">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-[#E85D44] text-white flex items-center justify-center font-bold shrink-0 shadow-sm">
@@ -388,7 +388,7 @@ export default function Page4SafetyCoordinator({
       {/* ========================================================================= */}
       {/* FINAL USER DASHBOARD (EXECUTIVE CLINICAL SYNTHESIS) */}
       {/* ========================================================================= */}
-      <div className="rounded-[28px] bg-white border border-[#F2E8E3] shadow-md p-6 sm:p-8 space-y-6">
+      <div className="rounded-[32px] bg-white/95 backdrop-blur-xl border border-white/80 shadow-[0_20px_50px_-6px_rgba(28,25,23,0.08)] hover:shadow-[0_25px_65px_-6px_rgba(28,25,23,0.1)] p-6 sm:p-8 space-y-6 transition-all duration-300">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#F2E8E3] gap-2">
           <div>
             <span className="text-[10px] font-bold text-[#E85D44] uppercase tracking-wider block">
