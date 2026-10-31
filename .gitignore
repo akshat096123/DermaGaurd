@@ -13,6 +13,7 @@ venv/
 *.zip
 data/raw/
 backend/app/dds/
+health200/health-hidden/
 
 # macOS
 .DS_Store
