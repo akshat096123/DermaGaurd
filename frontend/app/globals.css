@@ -94,5 +94,17 @@ body {
 /* Floating 3D Badge Sphere */
 .badge-3d-sphere {
   background: radial-gradient(circle at 30% 30%, #FFA08A 0%, #E85D44 60%, #C93E26 100%);
-  box-shadow: 0 8px 18px rgba(232, 93, 68, 0.35), inset 0 2px 4px rgba(255, 255, 255, 0.6);
+  box-shadow: 0 8px 18px rgba(232, 93, 68, 0.35), inset 0 2px 4px rgba(255, 255, 26, 0.6);
+}
+
+/* Hide Next.js Dev Indicator & Overlay Badge */
+nextjs-portal,
+[data-nextjs-dev-overlay],
+[data-nextjs-toast],
+[data-nextjs-toast-wrapper],
+[data-nextjs-dialog] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
