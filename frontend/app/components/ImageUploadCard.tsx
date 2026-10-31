@@ -139,14 +139,14 @@ export default function ImageUploadCard({
           if (isCameraActive) return;
           handleDrop(e);
         }}
-        className={`relative w-full aspect-[16/9] sm:aspect-[2/1] rounded-[24px] overflow-hidden border-2 transition-all ${
+        className={`relative w-full rounded-[24px] overflow-hidden border-2 transition-all ${
           isCameraActive
-            ? "border-[#0D9488]/40 bg-stone-950 shadow-md"
-            : dragOver
-            ? "border-[#E85D44] bg-[#FCEAE3]/40"
+            ? "aspect-[16/10] max-h-[380px] border-[#0D9488]/40 bg-stone-950 shadow-md"
             : selectedImageUrl
-            ? "border-[#F2E8E3] bg-[#FAF4F0]"
-            : "border-[#F2E8E3] border-dashed bg-[#FAF4F0]/60 hover:border-[#E85D44]/60 hover:bg-[#FCEAE3]/20"
+            ? "h-[240px] sm:h-[300px] border-[#F2E8E3] bg-[#FAF4F0]"
+            : dragOver
+            ? "h-[140px] sm:h-[160px] border-[#E85D44] bg-[#FCEAE3]/40"
+            : "h-[140px] sm:h-[160px] border-[#F2E8E3] border-dashed bg-[#FAF4F0]/60 hover:border-[#E85D44]/60 hover:bg-[#FCEAE3]/20"
         } flex items-center justify-center`}
       >
         {isCameraActive ? (
@@ -206,16 +206,16 @@ export default function ImageUploadCard({
         ) : (
           <div
             onClick={() => fileInputRef.current?.click()}
-            className="text-center p-8 space-y-3 cursor-pointer select-none group"
+            className="text-center p-4 sm:p-5 space-y-2 cursor-pointer select-none group"
           >
-            <div className="w-16 h-16 rounded-2xl bg-white shadow-md border border-[#F2E8E3] flex items-center justify-center mx-auto text-[#E85D44] group-hover:scale-105 transition-transform">
-              <Upload className="w-8 h-8" />
+            <div className="w-11 h-11 rounded-xl bg-white shadow-sm border border-[#F2E8E3] flex items-center justify-center mx-auto text-[#E85D44] group-hover:scale-105 transition-transform">
+              <Upload className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-extrabold text-[#18181B] group-hover:text-[#E85D44] transition-colors">
+              <h3 className="text-sm font-extrabold text-[#18181B] group-hover:text-[#E85D44] transition-colors leading-tight">
                 Drag & Drop Dermoscopy Scan Here
               </h3>
-              <p className="text-xs text-[#78716C] mt-1">
+              <p className="text-[11px] text-[#78716C] mt-0.5">
                 Or click anywhere in this area to browse from your device (JPEG, PNG, TIFF up to 25MB)
               </p>
             </div>

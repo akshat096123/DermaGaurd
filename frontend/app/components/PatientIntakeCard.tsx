@@ -140,10 +140,12 @@ export default function PatientIntakeCard({
             }}
             onDragLeave={() => setDragOver(false)}
             onDrop={handleDrop}
-            className={`relative w-full aspect-[4/3] rounded-[24px] overflow-hidden border-2 transition-all ${
-              dragOver
-                ? "border-[#E85D44] bg-[#FCEAE3]/40"
-                : "border-[#F2E8E3] bg-[#FAF4F0]"
+            className={`relative w-full rounded-[24px] overflow-hidden border-2 transition-all ${
+              selectedImageUrl
+                ? "aspect-[4/3] border-[#F2E8E3] bg-[#FAF4F0]"
+                : dragOver
+                ? "h-[140px] sm:h-[160px] border-[#E85D44] bg-[#FCEAE3]/40"
+                : "h-[140px] sm:h-[160px] border-[#F2E8E3] border-dashed bg-[#FAF4F0]/60 hover:border-[#E85D44]/60 hover:bg-[#FCEAE3]/20"
             } flex items-center justify-center`}
           >
             {selectedImageUrl ? (
@@ -162,15 +164,15 @@ export default function PatientIntakeCard({
                 <TactileSkinDepthMesh imageUrl={selectedImageUrl} className="w-full h-full" />
               )
             ) : (
-              <div className="text-center p-6 space-y-3">
-                <div className="w-14 h-14 rounded-2xl bg-white shadow-md border border-[#F2E8E3] flex items-center justify-center mx-auto text-[#E85D44]">
-                  <Upload className="w-7 h-7" />
+              <div className="text-center p-4 space-y-2">
+                <div className="w-11 h-11 rounded-xl bg-white shadow-sm border border-[#F2E8E3] flex items-center justify-center mx-auto text-[#E85D44]">
+                  <Upload className="w-5 h-5" />
                 </div>
                 <div>
                   <h4 className="text-sm font-extrabold text-[#18181B]">
                     Drag & Drop Dermoscopy Scan
                   </h4>
-                  <p className="text-xs text-[#78716C] mt-0.5">
+                  <p className="text-[11px] text-[#78716C] mt-0.5">
                     Supports high-resolution dermatologic JPEG, PNG, or TIFF
                   </p>
                 </div>
