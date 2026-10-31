@@ -13,6 +13,7 @@ import {
   Layers,
   BarChart3,
   RotateCcw,
+  User,
 } from "lucide-react";
 
 interface WorkflowHeaderProps {
@@ -23,6 +24,8 @@ interface WorkflowHeaderProps {
   sessionId: string;
   isBackendConnected: boolean;
   onResetWorkflow: () => void;
+  viewMode?: "workflow" | "bodymap";
+  onToggleViewMode?: (mode: "workflow" | "bodymap") => void;
 }
 
 const STEPS = [
@@ -60,6 +63,8 @@ export default function WorkflowHeader({
   sessionId,
   isBackendConnected,
   onResetWorkflow,
+  viewMode = "workflow",
+  onToggleViewMode,
 }: WorkflowHeaderProps) {
   return (
     <header className="sticky top-0 z-40 w-full backdrop-blur-xl bg-white/85 border-b border-[#F2E8E3]/80 shadow-[0_4px_24px_-4px_rgba(28,25,23,0.04)] transition-all">
@@ -86,8 +91,36 @@ export default function WorkflowHeader({
           </div>
 
           <div className="flex items-center gap-2.5 self-end sm:self-auto text-xs">
+            {/* View Mode Toggle: Screening vs 3D Body Map */}
+            <div className="flex items-center p-0.5 rounded-xl bg-[#FAF4F0] border border-[#F2E8E3] shadow-xs">
+              <button
+                type="button"
+                onClick={() => onToggleViewMode?.("workflow")}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-[11px] font-bold transition-all ${
+                  viewMode === "workflow"
+                    ? "bg-white text-[#E85D44] shadow-xs"
+                    : "text-[#78716C] hover:text-[#18181B]"
+                }`}
+              >
+                <Layers className="w-3.5 h-3.5" />
+                <span>Screening</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => onToggleViewMode?.("bodymap")}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-[11px] font-bold transition-all ${
+                  viewMode === "bodymap"
+                    ? "bg-gradient-to-r from-[#06B6D4] to-[#0891B2] text-white shadow-xs"
+                    : "text-[#78716C] hover:text-[#18181B]"
+                }`}
+              >
+                <User className="w-3.5 h-3.5" />
+                <span>3D Body Map & Skin Log</span>
+              </button>
+            </div>
+
             {/* Session ID Pill */}
-            <div className="px-3 py-1 rounded-xl bg-[#FAF4F0]/80 backdrop-blur-xs border border-[#F2E8E3] text-[#78716C] flex items-center gap-1.5 font-mono text-[11px] shadow-xs">
+            <div className="hidden lg:flex px-3 py-1 rounded-xl bg-[#FAF4F0]/80 backdrop-blur-xs border border-[#F2E8E3] text-[#78716C] items-center gap-1.5 font-mono text-[11px] shadow-xs">
               <span className="w-2 h-2 rounded-full bg-[#E85D44] ring-2 ring-[#E85D44]/20" />
               <span>Session: <strong className="text-[#18181B]">{sessionId}</strong></span>
             </div>

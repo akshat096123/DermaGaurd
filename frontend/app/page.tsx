@@ -6,6 +6,8 @@ import Page1Intake from "./components/Page1Intake";
 import Page2QualityDiagnosis from "./components/Page2QualityDiagnosis";
 import Page3LesionContext from "./components/Page3LesionContext";
 import Page4SafetyCoordinator from "./components/Page4SafetyCoordinator";
+import DermaHologramAssistant from "./components/DermaHologramAssistant";
+import BodyMap3D from "./components/BodyMap3D";
 import {
   WorkflowPage,
   PatientContext,
@@ -116,6 +118,7 @@ export default function Home() {
   const [sessionId, setSessionId] = useState<string>(DEFAULT_SESSION_ID);
   const [isBackendConnected, setIsBackendConnected] = useState<boolean>(false);
   const [presets, setPresets] = useState<PresetCase[]>(CLINICAL_PRESETS);
+  const [viewMode, setViewMode] = useState<"workflow" | "bodymap">("workflow");
 
   // Generate unique session ID on client mount
   useEffect(() => {
@@ -397,120 +400,160 @@ export default function Home() {
         <div className="absolute -bottom-32 right-1/3 w-[600px] h-[600px] rounded-full bg-[#0D9488]/6 blur-[120px]" />
       </div>
 
-      {/* Top Workflow Stepper Navigation:
-          Hidden on initial home/upload screen; appears after user clicks start analysis */}
-      {hasStartedAnalysis && (
-        <WorkflowHeader
-          currentPage={currentPage}
-          onSelectPage={(page) => {
-            setCurrentPage(page);
-            window.scrollTo({ top: 0, behavior: "smooth" });
-          }}
-          maxUnlockedPage={maxUnlockedPage}
-          qualityPassed={qualityPassed}
-          sessionId={sessionId}
-          isBackendConnected={isBackendConnected}
-          onResetWorkflow={handleResetWorkflow}
-        />
-      )}
+      {/* Top Workflow Stepper Navigation */}
+      <WorkflowHeader
+        currentPage={currentPage}
+        onSelectPage={(page) => {
+          setViewMode("workflow");
+          setCurrentPage(page);
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }}
+        maxUnlockedPage={maxUnlockedPage}
+        qualityPassed={qualityPassed}
+        sessionId={sessionId}
+        isBackendConnected={isBackendConnected}
+        onResetWorkflow={handleResetWorkflow}
+        viewMode={viewMode}
+        onToggleViewMode={setViewMode}
+      />
 
       {/* Main Workspace Container */}
       <main className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-8 overflow-x-hidden">
-        {/* Loading Indicator during agent pipeline execution */}
-        {isLoading && (
-          <div className="flex items-center justify-center p-8 rounded-2xl bg-white border border-[#F2E8E3] shadow-sm animate-pulse text-[#78716C] gap-3 max-w-xl mx-auto">
-            <Activity className="w-5 h-5 text-[#E85D44] animate-spin" />
-            <div className="text-left">
-              <span className="text-sm font-extrabold text-[#18181B] block">
-                Executing 6-Agent Dermatologic Pipeline...
-              </span>
-              <span className="text-[11px] text-[#78716C]">
-                Image Quality Agent → Diagnosis Agent → Lesion Analysis Agent → Reasoning / Context Agent → Safety Agent → Coordinator Agent
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* ===================================================================== */}
-        {/* PAGE 1: Image Upload & Patient Information */}
-        {/* ===================================================================== */}
-        {currentPage === 1 && (
-          <section aria-label="Page 1: Image Upload and Patient Information">
-            <Page1Intake
-              sessionId={sessionId}
-              selectedImageUrl={selectedImageUrl}
-              selectedImageId={selectedImageId}
-              selectedImageFile={selectedImageFile}
-              patientContext={patientContext}
-              presets={presets}
-              isLoading={isLoading}
-              onSelectImageFile={handleSelectImageFile}
-              onSelectPreset={handleSelectPreset}
-              onCameraCapture={handleCameraCapture}
-              onClearImage={handleClearImage}
-              onChangeContext={setPatientContext}
-              onStartAnalysis={handleStartAnalysis}
-            />
-          </section>
-        )}
-
-        {/* ===================================================================== */}
-        {/* PAGE 2: Image Quality Agent & Diagnosis Agent */}
-        {/* ===================================================================== */}
-        {currentPage === 2 && activeReport && (
-          <section aria-label="Page 2: Image Quality Agent & Diagnosis Agent">
-            <Page2QualityDiagnosis
-              report={activeReport}
-              selectedImageUrl={selectedImageUrl}
-              onProceedToPage3={() => {
-                setCurrentPage(3);
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }}
-              onBackToPage1={() => {
+        {/* 3D Human Body Map View */}
+        {viewMode === "bodymap" ? (
+          <section aria-label="3D Human Body Map & Skin Log">
+            <BodyMap3D
+              initialZone={patientContext.localization}
+              onSendToScreening={(data) => {
+                setPatientContext((prev) => ({
+                  ...prev,
+                  localization: data.zone,
+                }));
+                if (data.imageUrl) {
+                  setSelectedImageUrl(data.imageUrl);
+                  setSelectedImageFile(null);
+                  setSelectedImageId(data.imageUrl.split("/").pop()?.replace(".jpg", "") || "BODY_MAP_SPOT");
+                }
+                setViewMode("workflow");
                 setCurrentPage(1);
                 window.scrollTo({ top: 0, behavior: "smooth" });
               }}
             />
           </section>
-        )}
+        ) : (
+          <>
+            {/* Loading Indicator during agent pipeline execution */}
+            {isLoading && (
+              <div className="flex items-center justify-center p-8 rounded-2xl bg-white border border-[#F2E8E3] shadow-sm animate-pulse text-[#78716C] gap-3 max-w-xl mx-auto">
+                <Activity className="w-5 h-5 text-[#E85D44] animate-spin" />
+                <div className="text-left">
+                  <span className="text-sm font-extrabold text-[#18181B] block">
+                    Executing 6-Agent Dermatologic Pipeline...
+                  </span>
+                  <span className="text-[11px] text-[#78716C]">
+                    Image Quality Agent → Diagnosis Agent → Lesion Analysis Agent → Reasoning / Context Agent → Safety Agent → Coordinator Agent
+                  </span>
+                </div>
+              </div>
+            )}
 
-        {/* ===================================================================== */}
-        {/* PAGE 3: Lesion Analysis Agent & Reasoning / Context Agent */}
-        {/* ===================================================================== */}
-        {currentPage === 3 && activeReport && (
-          <section aria-label="Page 3: Lesion Analysis Agent & Reasoning / Context Agent">
-            <Page3LesionContext
-              report={activeReport}
-              selectedImageUrl={selectedImageUrl}
-              onProceedToPage4={() => {
-                setCurrentPage(4);
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }}
-              onBackToPage2={() => {
-                setCurrentPage(2);
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }}
-            />
-          </section>
-        )}
+            {/* ===================================================================== */}
+            {/* PAGE 1: Image Upload & Patient Information */}
+            {/* ===================================================================== */}
+            {currentPage === 1 && (
+              <section aria-label="Page 1: Image Upload and Patient Information">
+                <Page1Intake
+                  sessionId={sessionId}
+                  selectedImageUrl={selectedImageUrl}
+                  selectedImageId={selectedImageId}
+                  selectedImageFile={selectedImageFile}
+                  patientContext={patientContext}
+                  presets={presets}
+                  isLoading={isLoading}
+                  onSelectImageFile={handleSelectImageFile}
+                  onSelectPreset={handleSelectPreset}
+                  onCameraCapture={handleCameraCapture}
+                  onClearImage={handleClearImage}
+                  onChangeContext={setPatientContext}
+                  onStartAnalysis={handleStartAnalysis}
+                />
+              </section>
+            )}
 
-        {/* ===================================================================== */}
-        {/* PAGE 4: Safety Agent & Coordinator Agent + Final Result */}
-        {/* ===================================================================== */}
-        {currentPage === 4 && activeReport && (
-          <section aria-label="Page 4: Safety Agent & Coordinator Agent + Final Result">
-            <Page4SafetyCoordinator
-              report={activeReport}
-              selectedImageUrl={selectedImageUrl}
-              onResetWorkflow={handleResetWorkflow}
-              onBackToPage3={() => {
-                setCurrentPage(3);
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }}
-            />
-          </section>
+            {/* ===================================================================== */}
+            {/* PAGE 2: Image Quality Agent & Diagnosis Agent */}
+            {/* ===================================================================== */}
+            {currentPage === 2 && activeReport && (
+              <section aria-label="Page 2: Image Quality Agent & Diagnosis Agent">
+                <Page2QualityDiagnosis
+                  report={activeReport}
+                  selectedImageUrl={selectedImageUrl}
+                  onProceedToPage3={() => {
+                    setCurrentPage(3);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  onBackToPage1={() => {
+                    setCurrentPage(1);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                />
+              </section>
+            )}
+
+            {/* ===================================================================== */}
+            {/* PAGE 3: Lesion Analysis Agent & Reasoning / Context Agent */}
+            {/* ===================================================================== */}
+            {currentPage === 3 && activeReport && (
+              <section aria-label="Page 3: Lesion Analysis Agent & Reasoning / Context Agent">
+                <Page3LesionContext
+                  report={activeReport}
+                  selectedImageUrl={selectedImageUrl}
+                  onProceedToPage4={() => {
+                    setCurrentPage(4);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  onBackToPage2={() => {
+                    setCurrentPage(2);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                />
+              </section>
+            )}
+
+            {/* ===================================================================== */}
+            {/* PAGE 4: Safety Agent & Coordinator Agent + Final Result */}
+            {/* ===================================================================== */}
+            {currentPage === 4 && activeReport && (
+              <section aria-label="Page 4: Safety Agent & Coordinator Agent + Final Result">
+                <Page4SafetyCoordinator
+                  report={activeReport}
+                  selectedImageUrl={selectedImageUrl}
+                  onResetWorkflow={handleResetWorkflow}
+                  onBackToPage3={() => {
+                    setCurrentPage(3);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                />
+              </section>
+            )}
+          </>
         )}
       </main>
+
+      {/* 3D Holographic AI Avatar Assistant ("DERMA") */}
+      <DermaHologramAssistant
+        currentCase={activeReport}
+        patientProfile={patientContext}
+        onNavigatePage={(page) => {
+          setViewMode("workflow");
+          setCurrentPage(page);
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }}
+        onOpenBodyMap={() => {
+          setViewMode("bodymap");
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }}
+      />
 
       {/* Professional Medical Platform Footer */}
       <footer className="relative z-10 w-full py-4 text-center border-t border-[#F2E8E3] text-xs text-[#78716C] bg-white/70 backdrop-blur-md">
