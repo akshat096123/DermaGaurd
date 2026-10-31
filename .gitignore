@@ -13,6 +13,9 @@ venv/
 *.zip
 data/raw/
 backend/app/dds/
+dds/
+*dds*/
+*.dds
 health200/health-hidden/
 
 # macOS
