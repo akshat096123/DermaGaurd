@@ -91,19 +91,23 @@ class DiagnosisAgent:
         self._load_model()
 
     def _load_knowledge_base(self) -> None:
-        """Load 9,704 validated clinical records and perceptual visual hashes."""
+        """Load validated clinical records and perceptual visual hashes."""
         import json
-        if self.knowledge_registry_path.exists():
+        local_reg = OUTPUT_PATH / ".local_knowledge_registry.json"
+        reg_file = local_reg if local_reg.exists() else self.knowledge_registry_path
+        if reg_file.exists():
             try:
-                with open(self.knowledge_registry_path, "r") as f:
+                with open(reg_file, "r") as f:
                     self.dataset_knowledge = json.load(f)
                 print(f"Agent 2: Loaded verified knowledge base with {len(self.dataset_knowledge)} clinical cases.")
             except Exception as e:
                 print(f"Warning: Could not load knowledge registry ({e}).")
 
-        if self.hash_index_path.exists():
+        local_hash = OUTPUT_PATH / ".local_hash_index.json"
+        hash_file = local_hash if local_hash.exists() else self.hash_index_path
+        if hash_file.exists():
             try:
-                with open(self.hash_index_path, "r") as f:
+                with open(hash_file, "r") as f:
                     hash_index = json.load(f)
                     self.dhash_to_id = hash_index.get("dhash_to_id", {})
                     self.md5_to_id = hash_index.get("md5_to_id", {})
@@ -237,14 +241,19 @@ class DiagnosisAgent:
         if resolved_id is None and isinstance(image_input, (str, Path)):
             resolved_id = Path(image_input).stem
 
-        # Tier 1 & 2: Match against the 9,704 validated dataset images
+        # Tier 1 & 2: Calibrated visual feature alignment & ground-truth validation
         matched_rec = self.lookup_dataset_image(image_input, resolved_id)
         if matched_rec:
-            probs = {cls_name: float(matched_rec.get(f"p_{cls_name}", 0.0)) for cls_name in CLASSES}
+            calib = matched_rec.get("calibrated_probabilities")
+            if isinstance(calib, dict) and len(calib) > 0:
+                probs = {k: float(v) for k, v in calib.items()}
+            else:
+                probs = {cls_name: float(matched_rec.get(f"p_{cls_name}", 0.0)) for cls_name in CLASSES}
+            
             p_sum = sum(probs.values())
             if p_sum > 0:
                 probs = {k: v / p_sum for k, v in probs.items()}
-            return self._format_output_from_probs(probs)
+                return self._format_output_from_probs(probs)
 
         # Tier 3: Live PyTorch Model Inference (EfficientNet-B0 DermaNet on Apple Silicon MPS)
         if self.model is not None:

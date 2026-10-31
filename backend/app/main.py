@@ -138,16 +138,23 @@ PRESETS_METADATA = [
 def _find_image_file(image_id: str) -> Optional[Path]:
     """Find image on disk across eval, training, or frontend sample paths."""
     clean_id = Path(image_id).stem
+    target_name = f"{clean_id}.jpg"
     candidates = [
-        Path(f"data/raw/Health/eval/images/{clean_id}.jpg"),
-        Path(f"data/raw/Health/training/images/{clean_id}.jpg"),
-        Path(f"frontend/public/samples/{clean_id}.jpg"),
-        EVAL_IMG_PATH / f"{clean_id}.jpg",
-        TRAIN_IMG_PATH / f"{clean_id}.jpg",
+        Path(f"data/raw/Health/eval/images/{target_name}"),
+        Path(f"data/raw/Health/training/images/{target_name}"),
+        Path(f"frontend/public/samples/{target_name}"),
+        EVAL_IMG_PATH / target_name,
+        TRAIN_IMG_PATH / target_name,
     ]
     for p in candidates:
         if p.exists():
             return p
+
+    # Fallback scan across local application directories
+    for search_dir in [Path("backend/app"), Path("data"), Path("frontend/public")]:
+        if search_dir.exists():
+            for match in search_dir.rglob(target_name):
+                return match
     return None
 
 
