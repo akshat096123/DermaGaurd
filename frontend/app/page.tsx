@@ -8,6 +8,7 @@ import Page3LesionContext from "./components/Page3LesionContext";
 import Page4SafetyCoordinator from "./components/Page4SafetyCoordinator";
 import DermaHologramAssistant from "./components/DermaHologramAssistant";
 import BodyMap3D from "./components/BodyMap3D";
+import ClinicalAuditAnalyticsView from "./components/ClinicalAuditAnalyticsView";
 import {
   WorkflowPage,
   PatientContext,
@@ -118,7 +119,7 @@ export default function Home() {
   const [sessionId, setSessionId] = useState<string>(DEFAULT_SESSION_ID);
   const [isBackendConnected, setIsBackendConnected] = useState<boolean>(false);
   const [presets, setPresets] = useState<PresetCase[]>(CLINICAL_PRESETS);
-  const [viewMode, setViewMode] = useState<"workflow" | "bodymap">("workflow");
+  const [viewMode, setViewMode] = useState<"workflow" | "bodymap" | "results">("workflow");
 
   // Generate unique session ID on client mount
   useEffect(() => {
@@ -419,8 +420,12 @@ export default function Home() {
 
       {/* Main Workspace Container */}
       <main className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-8 overflow-x-hidden">
-        {/* 3D Human Body Map View */}
-        {viewMode === "bodymap" ? (
+        {/* Results & Benchmark Audit View */}
+        {viewMode === "results" ? (
+          <section aria-label="Clinical Validation Results & Benchmark Audit">
+            <ClinicalAuditAnalyticsView />
+          </section>
+        ) : viewMode === "bodymap" ? (
           <section aria-label="3D Human Body Map & Skin Log">
             <BodyMap3D
               initialZone={patientContext.localization}
@@ -551,6 +556,10 @@ export default function Home() {
         }}
         onOpenBodyMap={() => {
           setViewMode("bodymap");
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }}
+        onOpenResults={() => {
+          setViewMode("results");
           window.scrollTo({ top: 0, behavior: "smooth" });
         }}
       />

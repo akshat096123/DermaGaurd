@@ -37,9 +37,11 @@ interface DermaHologramAssistantProps {
   patientProfile?: PatientContext | null;
   onNavigatePage?: (page: WorkflowPage) => void;
   onOpenBodyMap?: () => void;
+  onOpenResults?: () => void;
 }
 
 const PROMPT_CHIPS = [
+  { label: "📊 Benchmark Results", query: "Show clinical validation results and confusion matrix" },
   { label: "🧴 Skincare & Sunscreen", query: "What sunscreen and lotions do you recommend for this lesion?" },
   { label: "🔬 Explain ABCD Score", query: "Can you explain the Agent 3 ABCD morphologic score?" },
   { label: "⚖️ Why Triage Gate?", query: "Why did the coordinator assign this specific triage gate?" },
@@ -52,6 +54,7 @@ export default function DermaHologramAssistant({
   patientProfile,
   onNavigatePage,
   onOpenBodyMap,
+  onOpenResults,
 }: DermaHologramAssistantProps) {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(false);
@@ -413,6 +416,29 @@ export default function DermaHologramAssistant({
         },
       ]);
       speakText("Opening the 3D Interactive Human Body Map and Skin Log.");
+      setInputText("");
+      return;
+    }
+
+    if (lower.includes("result") || lower.includes("benchmark") || lower.includes("confusion matrix")) {
+      onOpenResults?.();
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: String(Date.now()),
+          sender: "user",
+          text: textToSend,
+          timestamp: "Just now",
+        },
+        {
+          id: String(Date.now() + 1),
+          sender: "derma",
+          text: "Opening the **Benchmark Results & Clinical Validation Report**. Here you can inspect Correct/Incorrect Auto-Triage, Refers, Re-Image, Accuracy, Macro F1, the 7x7 Confusion Matrix, and Class-Wise Errors.",
+          timestamp: "Just now",
+          source: "navigation_directive",
+        },
+      ]);
+      speakText("Opening the Benchmark Results and Clinical Validation Report.");
       setInputText("");
       return;
     }
