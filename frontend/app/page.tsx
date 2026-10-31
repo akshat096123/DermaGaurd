@@ -274,19 +274,19 @@ export default function Home() {
           disease_name: isDegraded
             ? "Severely Degraded Image Quality"
             : isMel
-            ? "Malignant Cutaneous Melanoma"
-            : "Melanocytic Nevus (Typical Benign Mole)",
+              ? "Malignant Cutaneous Melanoma"
+              : "Melanocytic Nevus (Typical Benign Mole)",
           confidence: isDegraded ? 0.65 : isMel ? 0.899 : 0.882,
           policy_rule_triggered: isDegraded
             ? "Gate 1: Inadequate image quality"
             : isMel
-            ? "Gate 2: Safety veto or conflicting evidence"
-            : "Gate 3: Reliable evidence & high diagnostic confidence",
+              ? "Gate 2: Safety veto or conflicting evidence"
+              : "Gate 3: Reliable evidence & high diagnostic confidence",
           traceable_rationale: isDegraded
-            ? "1. Image Quality Agent identified severe focal blur and illumination deficiency; re-imaging required before diagnosis."
+            ? "Image Quality Agent identified severe focal blur and illumination deficiency; re-imaging required before diagnosis."
             : isMel
-            ? "Confirmed malignancy suspicion and elevated malignant tail mass warrant immediate dermatologist referral."
-            : "High-confidence benign nevus with symmetric borders, uniform pigmentation, and no safety vetoes.",
+              ? "Confirmed malignancy suspicion and elevated malignant tail mass warrant immediate dermatologist referral."
+              : "High-confidence benign nevus with symmetric borders, uniform pigmentation, and no safety vetoes.",
         },
         agents: {
           a1: {
@@ -329,11 +329,9 @@ export default function Home() {
             prior_multiplier: isMel ? 1.45 : 0.85,
             malignancy_prior_multiplier: isMel ? 1.45 : 0.85,
             risk_indicator: isMel ? "HIGH" : "LOW",
-            clinical_summary: `${patientContext.age ?? "Walk-in"}y ${
-              patientContext.sex
-            } presentation with lesion located on ${patientContext.localization}. Prior odds evaluated at ${
-              isMel ? "1.45x" : "0.85x"
-            }.`,
+            clinical_summary: `${patientContext.age ?? "Walk-in"}y ${patientContext.sex
+              } presentation with lesion located on ${patientContext.localization}. Prior odds evaluated at ${isMel ? "1.45x" : "0.85x"
+              }.`,
           },
           a5: {
             safety_flag: isMel || isDegraded,
@@ -342,13 +340,13 @@ export default function Home() {
             triggers: isDegraded
               ? ["IMAGE_QUALITY_FAIL"]
               : isMel
-              ? ["CONFIRMED_MALIGNANT_PATHOLOGY_MEL", "MALIGNANT_TAIL_ELEVATED"]
-              : [],
+                ? ["CONFIRMED_MALIGNANT_PATHOLOGY_MEL", "MALIGNANT_TAIL_ELEVATED"]
+                : [],
             justification: isDegraded
               ? "Image quality inadequate; re-imaging required."
               : isMel
-              ? "Confirmed malignancy suspicion vetoes autonomous screening."
-              : "Safety review clear; zero clinical conflicts detected.",
+                ? "Confirmed malignancy suspicion vetoes autonomous screening."
+                : "Safety review clear; zero clinical conflicts detected.",
             conflict_detected: isMel || isDegraded,
           },
           a6: {
@@ -358,13 +356,13 @@ export default function Home() {
             policy_rule_triggered: isDegraded
               ? "Gate 1: Inadequate image quality"
               : isMel
-              ? "Gate 2: Safety veto or conflicting evidence"
-              : "Gate 3: Reliable evidence & high diagnostic confidence",
+                ? "Gate 2: Safety veto or conflicting evidence"
+                : "Gate 3: Reliable evidence & high diagnostic confidence",
             traceable_rationale: isDegraded
               ? "Image quality inadequate; requesting fresh image capture."
               : isMel
-              ? "Confirmed malignancy suspicion warrants immediate dermatologist referral."
-              : "Sufficient reliable evidence for automated screening disposition. Benign lesion confirmed.",
+                ? "Confirmed malignancy suspicion warrants immediate dermatologist referral."
+                : "Sufficient reliable evidence for automated screening disposition. Benign lesion confirmed.",
             card_summary: {},
           },
         },
@@ -427,7 +425,7 @@ export default function Home() {
                 Executing 6-Agent Dermatologic Pipeline...
               </span>
               <span className="text-[11px] text-[#78716C]">
-                1. Image Quality Agent → 2. Diagnosis Agent → 3. Lesion Analysis Agent → 4. Reasoning / Context Agent → 5. Safety Agent → 6. Coordinator Agent
+                Image Quality Agent → Diagnosis Agent → Lesion Analysis Agent → Reasoning / Context Agent → Safety Agent → Coordinator Agent
               </span>
             </div>
           </div>
@@ -457,10 +455,10 @@ export default function Home() {
         )}
 
         {/* ===================================================================== */}
-        {/* PAGE 2: 1. Image Quality Agent & 2. Diagnosis Agent */}
+        {/* PAGE 2: Image Quality Agent & Diagnosis Agent */}
         {/* ===================================================================== */}
         {currentPage === 2 && activeReport && (
-          <section aria-label="Page 2: 1. Image Quality Agent & 2. Diagnosis Agent">
+          <section aria-label="Page 2: Image Quality Agent & Diagnosis Agent">
             <Page2QualityDiagnosis
               report={activeReport}
               selectedImageUrl={selectedImageUrl}
@@ -477,10 +475,10 @@ export default function Home() {
         )}
 
         {/* ===================================================================== */}
-        {/* PAGE 3: 3. Lesion Analysis Agent & 4. Reasoning / Context Agent */}
+        {/* PAGE 3: Lesion Analysis Agent & Reasoning / Context Agent */}
         {/* ===================================================================== */}
         {currentPage === 3 && activeReport && (
-          <section aria-label="Page 3: 3. Lesion Analysis Agent & 4. Reasoning / Context Agent">
+          <section aria-label="Page 3: Lesion Analysis Agent & Reasoning / Context Agent">
             <Page3LesionContext
               report={activeReport}
               selectedImageUrl={selectedImageUrl}
@@ -497,10 +495,10 @@ export default function Home() {
         )}
 
         {/* ===================================================================== */}
-        {/* PAGE 4: 5. Safety Agent & 6. Coordinator Agent + Final Result */}
+        {/* PAGE 4: Safety Agent & Coordinator Agent + Final Result */}
         {/* ===================================================================== */}
         {currentPage === 4 && activeReport && (
-          <section aria-label="Page 4: 5. Safety Agent & 6. Coordinator Agent + Final Result">
+          <section aria-label="Page 4: Safety Agent & Coordinator Agent + Final Result">
             <Page4SafetyCoordinator
               report={activeReport}
               selectedImageUrl={selectedImageUrl}

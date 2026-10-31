@@ -89,21 +89,21 @@ export default function Page1Intake({
       {/* Brand Header Banner for Page 1 */}
       <div className="rounded-[32px] bg-white/90 backdrop-blur-xl border border-white/80 shadow-[0_16px_45px_-6px_rgba(28,25,23,0.06)] hover:shadow-[0_20px_55px_-6px_rgba(28,25,23,0.08)] p-6 sm:p-8 space-y-6 transition-all duration-300">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#F2E8E3] gap-4">
-          <div className="flex items-center gap-3">
-            <div className="relative flex items-center justify-center w-11 h-11 rounded-2xl bg-gradient-to-br from-[#E85D44] via-[#F27059] to-[#D4472E] text-white shadow-md shadow-[#E85D44]/25 shrink-0">
-              <Shield className="w-5 h-5 text-white" />
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-[#10B981] border-2 border-white rounded-full" />
+          <div className="flex items-center gap-4">
+            <div className="relative flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-[#E85D44] via-[#F27059] to-[#D4472E] text-white shadow-lg shadow-[#E85D44]/30 ring-2 ring-white/80 shrink-0">
+              <Shield className="w-7 h-7 text-white" />
+              <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-[#10B981] border-2 border-white rounded-full shadow-xs" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <span className="text-lg font-extrabold tracking-tight text-[#18181B]">
+              <div className="flex items-center gap-2.5">
+                <span className="text-2xl sm:text-3xl font-black tracking-tight text-[#18181B]">
                   DermaGuard <span className="text-[#E85D44]">Clinical</span>
                 </span>
-                <span className="px-2 py-0.5 text-[10px] font-bold tracking-wide uppercase rounded-full bg-[#E85D44]/10 text-[#E85D44]">
+                <span className="px-2.5 py-0.5 text-xs font-black tracking-wide uppercase rounded-full bg-[#E85D44]/10 text-[#E85D44] border border-[#E85D44]/20 shadow-xs">
                   PAGE 1 OF 4
                 </span>
               </div>
-              <p className="text-[11px] text-[#78716C] font-medium leading-none mt-0.5">
+              <p className="text-xs sm:text-sm text-[#78716C] font-semibold mt-0.5">
                 Step-by-Step Autonomous Dermatology Triage Workflow
               </p>
             </div>
@@ -397,7 +397,7 @@ export default function Page1Intake({
                 ))}
               </div>
               <p className="text-[10px] text-[#A8A29E]">
-                Used by 4. Reasoning / Context Agent for epidemiological risk stratification.
+                Used by Reasoning / Context Agent for epidemiological risk stratification.
               </p>
             </div>
 
@@ -445,7 +445,7 @@ export default function Page1Intake({
               </h2>
             </div>
             <span className="text-[11px] text-[#78716C]">
-              Transfers to <strong>Page 2 (1. Image Quality Agent & 2. Diagnosis Agent)</strong>
+              Transfers to <strong>Page 2 (Image Quality Agent & Diagnosis Agent)</strong>
             </span>
           </div>
 

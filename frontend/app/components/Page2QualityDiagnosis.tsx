@@ -67,7 +67,7 @@ export default function Page2QualityDiagnosis({
             </span>
           </div>
           <h1 className="text-xl sm:text-2xl font-extrabold text-[#18181B] tracking-tight mt-1">
-            1. Image Quality Agent & 2. Diagnosis Agent
+            Image Quality Agent & Diagnosis Agent
           </h1>
           <p className="text-xs text-[#78716C]">
             Optical acquisition certification and deep-learning classification under ConvNeXt-Small.
@@ -114,7 +114,7 @@ export default function Page2QualityDiagnosis({
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-base font-extrabold text-[#18181B]">
-                  1. Image Quality Agent
+                  Image Quality Agent
                 </h2>
                 <span
                   className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
@@ -250,7 +250,7 @@ export default function Page2QualityDiagnosis({
 
             <div className="text-xs text-[#4C0519] bg-white/80 p-3 rounded-xl border border-[#FDA4AF] space-y-1">
               <p>
-                <strong>Important implementation rule:</strong> <strong>1. Image Quality Agent</strong> acts as the strict image-quality gate before diagnosis. Because this scan has inadequate resolution, blur, or obstruction, downstream agents (Diagnosis, Lesion Analysis, Reasoning / Context, Safety, and Coordinator) are suspended to protect against diagnostic error.
+                <strong>Important implementation rule:</strong> <strong>Image Quality Agent</strong> acts as the strict image-quality gate before diagnosis. Because this scan has inadequate resolution, blur, or obstruction, downstream agents (Diagnosis, Lesion Analysis, Reasoning / Context, Safety, and Coordinator) are suspended to protect against diagnostic error.
               </p>
               <p className="text-[#9F1239]">
                 Please return to Page 1 and capture or upload a clear, focused dermoscopy photo.
@@ -287,7 +287,7 @@ export default function Page2QualityDiagnosis({
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-base font-extrabold text-[#18181B]">
-                  2. Diagnosis Agent
+                  Diagnosis Agent
                 </h2>
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#E85D44]/15 text-[#E85D44]">
                   ConvNeXt-Small
@@ -445,7 +445,7 @@ export default function Page2QualityDiagnosis({
             onClick={onProceedToPage3}
             className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-[#E85D44] to-[#F27059] text-white text-xs font-extrabold shadow-md hover:shadow-lg flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.99] transition-all"
           >
-            <span>Proceed to Page 3: 3. Lesion Analysis Agent & 4. Reasoning / Context Agent</span>
+            <span>Proceed to Page 3: Lesion Analysis Agent & Reasoning / Context Agent</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         )}

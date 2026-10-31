@@ -62,7 +62,7 @@ export default function Page3LesionContext({
             </span>
           </div>
           <h1 className="text-xl sm:text-2xl font-extrabold text-[#18181B] tracking-tight mt-1">
-            3. Lesion Analysis Agent & 4. Reasoning / Context Agent
+            Lesion Analysis Agent & Reasoning / Context Agent
           </h1>
           <p className="text-xs text-[#78716C]">
             Physical morphological geometry quantification paired with Bayesian epidemiological risk reasoning.
@@ -90,7 +90,7 @@ export default function Page3LesionContext({
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-base font-extrabold text-[#18181B]">
-                  3. Lesion Analysis Agent
+                  Lesion Analysis Agent
                 </h2>
                 <span
                   className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
@@ -279,7 +279,7 @@ export default function Page3LesionContext({
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-base font-extrabold text-[#18181B]">
-                  4. Reasoning / Context Agent
+                  Reasoning / Context Agent
                 </h2>
                 <span
                   className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
@@ -405,7 +405,7 @@ export default function Page3LesionContext({
           className="w-full sm:w-auto px-5 py-3 rounded-xl bg-white border border-[#F2E8E3] hover:border-[#E5DCD4] text-xs font-bold text-[#18181B] flex items-center justify-center gap-2 shadow-sm transition-all"
         >
           <ArrowLeft className="w-4 h-4 text-[#78716C]" />
-          <span>← Back to Page 2 (1. Image Quality Agent & 2. Diagnosis Agent)</span>
+          <span>← Back to Page 2 (Image Quality Agent & Diagnosis Agent)</span>
         </button>
 
         <button
@@ -413,7 +413,7 @@ export default function Page3LesionContext({
           onClick={onProceedToPage4}
           className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-[#E85D44] to-[#F27059] text-white text-xs font-extrabold shadow-md hover:shadow-lg flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.99] transition-all"
         >
-          <span>Proceed to Page 4: 5. Safety Agent & 6. Coordinator Agent</span>
+          <span>Proceed to Page 4: Safety Agent & Coordinator Agent</span>
           <ArrowRight className="w-4 h-4" />
         </button>
       </div>

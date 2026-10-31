@@ -288,7 +288,7 @@ export default function DiagnosticReportView({
                   <span>Reassurance: No Disease Detected (Clear Healthy Skin)</span>
                 </div>
                 <p className="leading-relaxed text-[10.5px] text-[#15803D]">
-                  You provided a photograph of normal, healthy skin with no focal lesion or mole. International dermoscopy AI models are trained exclusively on microscopic close-ups of isolated, suspicious moles. Because your skin is healthy and has no focal lesion, the mathematical model distributed low probabilities across natural skin melanin (NV: {Math.round((a2Probs.nv || 0) * 100)}%) and capillary blood perfusion (VASC: {Math.round((a2Probs.vasc || 0) * 100)}%). 5. Safety Agent gate verified zero signs of malignancy.
+                  You provided a photograph of normal, healthy skin with no focal lesion or mole. International dermoscopy AI models are trained exclusively on microscopic close-ups of isolated, suspicious moles. Because your skin is healthy and has no focal lesion, the mathematical model distributed low probabilities across natural skin melanin (NV: {Math.round((a2Probs.nv || 0) * 100)}%) and capillary blood perfusion (VASC: {Math.round((a2Probs.vasc || 0) * 100)}%). Safety Agent gate verified zero signs of malignancy.
                 </p>
               </div>
             )}

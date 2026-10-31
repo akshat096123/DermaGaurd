@@ -31,7 +31,7 @@ Most skin cancer screening apps send a photo directly to a single neural network
 +===================================================================================+
 | PAGE 2: ACQUISITION & NEURAL CLASSIFICATION                                       |
 |                                                                                   |
-|  [ 1. Image Quality Agent ]                                                       |
+|  [ Image Quality Agent ]                                                          |
 |    - Blur check (Laplacian variance)                                              |
 |    - Glare & lighting (HSV thresholding & entropy)                                |
 |    - Hair / ruler obstruction (Black-hat transform)                               |
@@ -39,7 +39,7 @@ Most skin cancer screening apps send a photo directly to a single neural network
 |            +---> If Quality Fails ----> [ GATE 1: RE-IMAGE (Workflow Halts) ]     |
 |            |                                                                      |
 |            v (If Quality Passes)                                                  |
-|  [ 2. Diagnosis Agent ]                                                           |
+|  [ Diagnosis Agent ]                                                              |
 |    - ConvNeXt-Small deep neural net                                               |
 |    - 7-class differential diagnosis (Melanoma, Nevus, BCC, AKIEC, BKL, DF, VASC)  |
 +===================================================================================+
@@ -48,13 +48,13 @@ Most skin cancer screening apps send a photo directly to a single neural network
 +===================================================================================+
 | PAGE 3: LESION MORPHOMETRY & PATIENT CONTEXT                                      |
 |                                                                                   |
-|  [ 3. Lesion Analysis Agent ]                                                     |
+|  [ Lesion Analysis Agent ]                                                        |
 |    - Asymmetry index (contour & moment analysis)                                  |
 |    - Border irregularity (compactness & perimeter score)                          |
 |    - Color variegation (RGB/HSV standard deviation)                               |
 |    - Diameter estimation in millimeters                                           |
 |                                                                                   |
-|  [ 4. Reasoning / Context Agent ]                                                 |
+|  [ Reasoning / Context Agent ]                                                    |
 |    - Patient age group risk multipliers                                           |
 |    - Biological sex incidence weighting                                          |
 |    - Anatomical lesion location risk (scalp, torso, extremities)                 |
@@ -64,13 +64,13 @@ Most skin cancer screening apps send a photo directly to a single neural network
 +===================================================================================+
 | PAGE 4: SAFETY GUARDRAILS & CHIEF COORDINATOR                                     |
 |                                                                                   |
-|  [ 5. Safety Agent ]                                                              |
+|  [ Safety Agent ]                                                                 |
 |    - Checks uncertainty & entropy spikes                                          |
 |    - Compares Agent 2 prediction vs Agent 3 ABCD scores                           |
 |    - Flags malignant tail risk (even low-probability melanoma triggers audit)     |
 |    - Can trigger an autonomous SAFETY VETO                                        |
 |                                                                                   |
-|  [ 6. Coordinator Agent ]                                                         |
+|  [ Coordinator Agent ]                                                            |
 |    - Combines outputs from Agents 1 through 5                                     |
 |    - Assigns final triage verdict via 3 Clinical Decision Gates                   |
 +===================================================================================+
@@ -91,12 +91,12 @@ Most skin cancer screening apps send a photo directly to a single neural network
 
 ## The 6 Agents Explained
 
-### 1. Image Quality Agent
+### Image Quality Agent
 Before running any diagnosis, this agent validates that the photo is actually readable.
 - **How it works:** Uses OpenCV algorithms (Laplacian variance for blur, HSV brightness masks for specular flash glare, Shannon entropy for exposure, and black-hat morphology for hair/ruler obstruction).
 - **Why it matters:** If an image is too blurry or covered by glare, the pipeline immediately halts at **Gate 1 (RE-IMAGE)** so the system never makes a false medical call on bad data.
 
-### 2. Diagnosis Agent
+### Diagnosis Agent
 Calculates the statistical likelihood of 7 recognized dermatological conditions using an optimized **ConvNeXt-Small** neural network.
 - **7 Diagnostic Classes:**
   1. `mel` - Melanoma
@@ -107,25 +107,25 @@ Calculates the statistical likelihood of 7 recognized dermatological conditions 
   6. `df` - Dermatofibroma
   7. `vasc` - Vascular Lesion (angioma, pyogenic granuloma)
 
-### 3. Lesion Analysis Agent
+### Lesion Analysis Agent
 Evaluates the physical geometry of the lesion using the clinical **ABCD Rule**:
 - **A (Asymmetry):** Measures contour symmetry across primary and secondary axes.
 - **B (Border):** Calculates edge scalloping and perimeter-to-area irregularity.
 - **C (Color):** Measures color variegation across red, blue, brown, black, and white channels.
 - **D (Diameter):** Estimates lesion diameter in millimeters against calibration markers.
 
-### 4. Reasoning / Context Agent
+### Reasoning / Context Agent
 Adjusts risk based on who the patient is, not just what the lesion looks like.
 - **Inputs:** Age, biological sex, and anatomical location (e.g., sun-exposed scalp vs. torso vs. lower extremities).
 - **How it works:** Applies Bayesian prior adjustments so that older patients or high-risk body sites receive tighter clinical scrutiny.
 
-### 5. Safety Agent
+### Safety Agent
 The system's safety auditor. Its sole job is to catch edge cases and prevent false negatives.
 - Checks prediction entropy (detects when the neural net is guessing).
 - Detects discordance (for example, if Agent 2 predicts a benign nevus, but Agent 3 finds high border asymmetry and dark variegation).
 - If any red flag appears, it triggers an autonomous **Safety Veto**, overriding a benign classification and escalating to a dermatologist.
 
-### 6. Coordinator Agent
+### Coordinator Agent
 The lead clinician agent that arbitrates all 5 prior agent reports and determines the final triage verdict under three deterministic gates:
 
 | Decision Gate | Trigger Conditions | Clinical Action |
