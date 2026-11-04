@@ -136,6 +136,7 @@ export default function Home() {
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
+  const [isLiveCameraFeed, setIsLiveCameraFeed] = useState<boolean>(false);
 
   // Analysis & Report State
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -165,6 +166,7 @@ export default function Home() {
     setSelectedImageId(preset.image_id);
     setSelectedImageFile(null);
     setSelectedImageUrl(`/samples/${preset.image_id}.jpg`);
+    setIsLiveCameraFeed(false);
     setPatientContext({
       age: preset.age,
       sex: (preset.sex as any) || "unspecified",
@@ -178,6 +180,7 @@ export default function Home() {
     setSelectedImageId(file.name.replace(/\.[^/.]+$/, ""));
     const url = URL.createObjectURL(file);
     setSelectedImageUrl(url);
+    setIsLiveCameraFeed(false);
   };
 
   // Handle WebRTC Guided Camera Capture
@@ -186,12 +189,14 @@ export default function Home() {
       setSelectedImageFile(null);
       setSelectedImageId(null);
       setSelectedImageUrl(null);
+      setIsLiveCameraFeed(false);
       return;
     }
     const file = new File([blob], `capture_${Date.now()}.jpg`, { type: "image/jpeg" });
     setSelectedImageFile(file);
     setSelectedImageId(`WEBRTC_${Date.now()}`);
     setSelectedImageUrl(dataUrl);
+    setIsLiveCameraFeed(true);
   };
 
   // Clear selected image
@@ -199,6 +204,7 @@ export default function Home() {
     setSelectedImageFile(null);
     setSelectedImageUrl(null);
     setSelectedImageId(null);
+    setIsLiveCameraFeed(false);
   };
 
   // Reset entire workflow back to Page 1
@@ -210,6 +216,7 @@ export default function Home() {
     setSelectedImageFile(null);
     setSelectedImageUrl(null);
     setSelectedImageId(null);
+    setIsLiveCameraFeed(false);
     setSessionId(`DG-2026-${Math.floor(10000 + Math.random() * 90000)}`);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -236,6 +243,15 @@ export default function Home() {
       formData.append("sex", patientContext.sex || "unspecified");
       formData.append("localization", patientContext.localization || "unspecified");
 
+      const isFromCamera =
+        isLiveCameraFeed ||
+        selectedImageId?.startsWith("WEBRTC") ||
+        selectedImageId?.startsWith("capture");
+
+      if (isFromCamera) {
+        formData.append("is_camera", "true");
+      }
+
       const res = await fetch("http://localhost:8000/api/analyze", {
         method: "POST",
         body: formData,
@@ -246,6 +262,23 @@ export default function Home() {
       }
 
       const result: AnalysisResponse = await res.json();
+
+      if (isFromCamera) {
+        // User rule: in every verification through live camera feed always keep accuracy below 30%
+        const cameraAccuracy = 0.268; // 26.8%, strictly < 30%
+        result.verdict.confidence = cameraAccuracy;
+        if (result.agents?.a2) {
+          result.agents.a2.confidence = cameraAccuracy;
+          const topCls = (result.agents.a2.predicted_class || "nv").toLowerCase();
+          const remClasses = ["akiec", "bcc", "bkl", "df", "mel", "nv", "vasc"].filter((c) => c !== topCls);
+          const remProb = parseFloat(((1 - cameraAccuracy) / remClasses.length).toFixed(4));
+          result.agents.a2.probabilities = { [topCls]: cameraAccuracy } as any;
+          remClasses.forEach((c) => {
+            result.agents.a2.probabilities[c] = remProb;
+          });
+        }
+      }
+
       setActiveReport(result);
 
       // Check quality gate
@@ -263,11 +296,17 @@ export default function Home() {
     } catch (err: any) {
       console.warn("Live API call failed; generating calibrated multi-agent simulation:", err);
 
+      const isFromCamera =
+        isLiveCameraFeed ||
+        selectedImageId?.startsWith("WEBRTC") ||
+        selectedImageId?.startsWith("capture");
       const isDegraded = selectedImageId?.includes("DEGRADED") || false;
       const isMel =
         selectedImageId === "ISIC_0029081" ||
         selectedImageId === "ISIC_0026993" ||
         selectedImageId === "ISIC_0031023";
+
+      const baseConfidence = isFromCamera ? 0.268 : (isDegraded ? 0.65 : isMel ? 0.899 : 0.882);
 
       const simulated: AnalysisResponse = {
         image_id: selectedImageId || "SCAN_01",
@@ -281,7 +320,7 @@ export default function Home() {
             : isMel
               ? "Malignant Cutaneous Melanoma"
               : "Melanocytic Nevus (Typical Benign Mole)",
-          confidence: isDegraded ? 0.65 : isMel ? 0.899 : 0.882,
+          confidence: baseConfidence,
           policy_rule_triggered: isDegraded
             ? "Gate 1: Inadequate image quality"
             : isMel
@@ -309,14 +348,16 @@ export default function Home() {
           },
           a2: {
             predicted_class: isMel ? "mel" : "nv",
-            confidence: isMel ? 0.899 : 0.882,
-            probabilities: isMel
+            confidence: baseConfidence,
+            probabilities: isFromCamera
+              ? { nv: 0.268, bkl: 0.122, mel: 0.122, bcc: 0.122, akiec: 0.122, vasc: 0.122, df: 0.122 }
+              : isMel
               ? { mel: 0.899, bcc: 0.04, akiec: 0.02, nv: 0.02, bkl: 0.01, df: 0.005, vasc: 0.005 }
               : { nv: 0.882, bkl: 0.06, mel: 0.02, bcc: 0.015, akiec: 0.01, vasc: 0.008, df: 0.005 },
             top2_class: isMel ? "bcc" : "bkl",
-            top2_confidence: 0.06,
-            entropy: isMel ? 0.38 : 0.28,
-            malignant_probability_mass: isMel ? 0.959 : 0.045,
+            top2_confidence: isFromCamera ? 0.122 : 0.06,
+            entropy: isFromCamera ? 1.85 : (isMel ? 0.38 : 0.28),
+            malignant_probability_mass: isFromCamera ? 0.244 : (isMel ? 0.959 : 0.045),
           },
           a3: {
             asymmetry_score: isMel ? 0.78 : 0.18,
@@ -441,6 +482,7 @@ export default function Home() {
           <section aria-label="3D Human Body Map & Skin Log">
             <BodyMap3D
               initialZone={patientContext.localization}
+              initialSex={patientContext.sex === "male" ? "male" : "female"}
               onSendToScreening={(data) => {
                 setPatientContext((prev) => ({
                   ...prev,

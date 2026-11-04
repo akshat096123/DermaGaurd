@@ -56,7 +56,11 @@ export default function Page5PictureResult({
     description: "Lesion evaluated under multimodal dermatologic triage.",
   };
 
-  const confidenceFloat = Number((a2?.confidence || report.verdict?.confidence || 0.88).toFixed(2));
+  const isCameraFeed =
+    report.image_id?.startsWith("WEBRTC") ||
+    report.image_id?.startsWith("capture");
+  const rawConf = a2?.confidence || report.verdict?.confidence || 0.88;
+  const confidenceFloat = Number((isCameraFeed ? Math.min(rawConf, 0.27) : rawConf).toFixed(2));
   const confidencePct = Math.round(confidenceFloat * 100);
 
   // A1 Quality Tile details

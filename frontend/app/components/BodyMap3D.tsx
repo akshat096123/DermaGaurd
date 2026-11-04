@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
 import {
   Compass,
   RotateCcw,
@@ -20,6 +21,9 @@ import {
   X,
   Maximize2,
   Info,
+  Sparkles,
+  Layers,
+  Loader2,
 } from "lucide-react";
 
 export interface BodyPin {
@@ -37,6 +41,7 @@ export interface BodyPin {
 
 interface BodyMap3DProps {
   initialZone?: string;
+  initialSex?: "male" | "female";
   onSendToScreening?: (data: { zone: string; imageUrl?: string; notes?: string }) => void;
   onClose?: () => void;
 }
@@ -95,11 +100,17 @@ const PRESET_SPOTS: BodyPin[] = [
 
 export default function BodyMap3D({
   initialZone,
+  initialSex = "male",
   onSendToScreening,
   onClose,
 }: BodyMap3DProps) {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  // Model Selection (Male vs Female) - defaults to Male
+  const [modelGender, setModelGender] = useState<"male" | "female">(
+    initialSex === "female" ? "female" : "male"
+  );
 
   // Stored Body Pins
   const [pins, setPins] = useState<BodyPin[]>(() => {
@@ -117,6 +128,8 @@ export default function BodyMap3D({
   const [selectedPin, setSelectedPin] = useState<BodyPin | null>(null);
   const [hoveredZone, setHoveredZone] = useState<string | null>(null);
   const [activePreset, setActivePreset] = useState<"front" | "back" | "left" | "right" | "reset">("front");
+  const [skinTheme, setSkinTheme] = useState<"realistic" | "holographic" | "clay">("realistic");
+  const [isLoadingModel, setIsLoadingModel] = useState<boolean>(true);
 
   // New Spot Drawer State
   const [isAddingSpot, setIsAddingSpot] = useState<boolean>(false);
@@ -142,8 +155,152 @@ export default function BodyMap3D({
   const controlsRef = useRef<OrbitControls | null>(null);
   const markersGroupRef = useRef<THREE.Group | null>(null);
   const mannequinGroupRef = useRef<THREE.Group | null>(null);
+  const bodyMeshesRef = useRef<THREE.Mesh[]>([]);
   const animationFrameRef = useRef<number | null>(null);
   const targetCamPosRef = useRef<THREE.Vector3 | null>(null);
+
+  // Anatomical zone classifier based on 3D world coordinates
+  const getAnatomicalZoneFromPoint = useCallback((p: THREE.Vector3): string => {
+    const y = p.y;
+    const x = p.x;
+    const z = p.z;
+
+    if (y >= 1.95) {
+      return z >= 0 ? "face" : "scalp";
+    }
+    if (y >= 1.65) {
+      return "neck";
+    }
+    if (y >= 0.75) {
+      if (Math.abs(x) > 0.85) return "upper extremity";
+      if (z < 0) return "back";
+      return "chest";
+    }
+    if (y >= -0.1) {
+      if (Math.abs(x) > 1.05) return "hand";
+      if (Math.abs(x) > 0.65) return "upper extremity";
+      if (z < 0) return "back";
+      return "abdomen";
+    }
+    if (y >= -0.5) {
+      if (Math.abs(x) > 0.95) return "hand";
+      if (z < 0) return "back";
+      return "abdomen";
+    }
+    if (y >= -2.25) {
+      return "lower extremity";
+    }
+    return "foot";
+  }, []);
+
+  // Material generator for current theme
+  const createSkinMaterial = useCallback((theme: "realistic" | "holographic" | "clay") => {
+    if (theme === "realistic") {
+      return new THREE.MeshStandardMaterial({
+        color: 0xedd9cb, // Natural warm clinical human skin tone
+        roughness: 0.45,
+        metalness: 0.05,
+        side: THREE.DoubleSide,
+      });
+    } else if (theme === "holographic") {
+      return new THREE.MeshStandardMaterial({
+        color: 0x06b6d4, // Cyan holographic medical contour
+        roughness: 0.25,
+        metalness: 0.75,
+        emissive: 0x083344,
+        emissiveIntensity: 0.45,
+        transparent: true,
+        opacity: 0.88,
+        side: THREE.DoubleSide,
+      });
+    } else {
+      return new THREE.MeshStandardMaterial({
+        color: 0xf5f2ee, // Neutral medical porcelain / studio clay
+        roughness: 0.48,
+        metalness: 0.02,
+        side: THREE.DoubleSide,
+      });
+    }
+  }, []);
+
+  // Dynamically update materials when skinTheme changes
+  useEffect(() => {
+    if (bodyMeshesRef.current.length === 0) return;
+    const newMat = createSkinMaterial(skinTheme);
+    bodyMeshesRef.current.forEach((mesh) => {
+      mesh.material = newMat;
+    });
+  }, [skinTheme, createSkinMaterial]);
+
+  // Load Model when modelGender changes
+  const loadHumanModel = useCallback(
+    (gender: "male" | "female") => {
+      if (!mannequinGroupRef.current) return;
+      const group = mannequinGroupRef.current;
+
+      // Remove existing model children
+      while (group.children.length > 0) {
+        const obj = group.children[0];
+        group.remove(obj);
+        if ((obj as any).geometry) (obj as any).geometry.dispose();
+      }
+
+      setIsLoadingModel(true);
+
+      const objLoader = new OBJLoader();
+      const modelUrl = gender === "male" ? "/models/male.obj" : "/models/female.obj";
+
+      objLoader.load(
+        modelUrl,
+        (obj) => {
+          const skinMat = createSkinMaterial(skinTheme);
+          const meshes: THREE.Mesh[] = [];
+
+          obj.traverse((child) => {
+            if ((child as THREE.Mesh).isMesh) {
+              const mesh = child as THREE.Mesh;
+              mesh.geometry.computeVertexNormals();
+              mesh.material = skinMat;
+              mesh.castShadow = true;
+              mesh.receiveShadow = true;
+              meshes.push(mesh);
+            }
+          });
+
+          bodyMeshesRef.current = meshes;
+
+          // Compute bounds & auto-scale to standard height (~5.4 units)
+          const bbox = new THREE.Box3().setFromObject(obj);
+          const size = bbox.getSize(new THREE.Vector3());
+          const center = bbox.getCenter(new THREE.Vector3());
+
+          // Center model on origin
+          obj.position.x = -center.x;
+          obj.position.y = -center.y;
+          obj.position.z = -center.z;
+
+          const modelWrapper = new THREE.Group();
+          modelWrapper.add(obj);
+
+          const targetHeight = 5.4;
+          const scale = targetHeight / (size.y || 1);
+          modelWrapper.scale.set(scale, scale, scale);
+
+          // Position model on top of the ground disc
+          modelWrapper.position.set(0, 0.05, 0);
+
+          group.add(modelWrapper);
+          setIsLoadingModel(false);
+        },
+        undefined,
+        (err) => {
+          console.error(`Failed to load ${modelUrl}:`, err);
+          setIsLoadingModel(false);
+        }
+      );
+    },
+    [createSkinMaterial, skinTheme]
+  );
 
   // Initialize Three.js Scene
   useEffect(() => {
@@ -175,139 +332,55 @@ export default function BodyMap3D({
     controls.target.set(0, 0.2, 0);
     controlsRef.current = controls;
 
-    // Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
+    // Advanced Clinical Lighting System
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.3);
     scene.add(ambientLight);
 
-    const dirLight1 = new THREE.DirectionalLight(0xfff5ea, 1.8);
-    dirLight1.position.set(5, 8, 6);
-    scene.add(dirLight1);
+    // Key Light (Warm soft directional light)
+    const keyLight = new THREE.DirectionalLight(0xfff6ed, 2.0);
+    keyLight.position.set(4, 7, 6);
+    scene.add(keyLight);
 
-    const dirLight2 = new THREE.DirectionalLight(0x06b6d4, 0.6);
-    dirLight2.position.set(-6, -2, -4);
-    scene.add(dirLight2);
+    // Fill Light (Cool clinical cyan)
+    const fillLight = new THREE.DirectionalLight(0x06b6d4, 0.6);
+    fillLight.position.set(-6, -1, -3);
+    scene.add(fillLight);
+
+    // Rim Light (Accentuates human body silhouette)
+    const rimLight = new THREE.DirectionalLight(0xffffff, 0.85);
+    rimLight.position.set(0, 5, -6);
+    scene.add(rimLight);
 
     // Subtle Ground Shadow Disc
-    const groundGeom = new THREE.CircleGeometry(2.4, 32);
+    const groundGeom = new THREE.CircleGeometry(2.4, 48);
     const groundMat = new THREE.MeshBasicMaterial({
-      color: 0x000000,
+      color: 0x1c1917,
       transparent: true,
-      opacity: 0.05,
+      opacity: 0.06,
     });
     const groundMesh = new THREE.Mesh(groundGeom, groundMat);
     groundMesh.rotation.x = -Math.PI / 2;
-    groundMesh.position.y = -3.1;
+    groundMesh.position.y = -2.85;
     scene.add(groundMesh);
 
-    // =========================================================================
-    // PROCEDURAL 3D HUMANOID MANNEQUIN
-    // =========================================================================
+    // Pedestal Glow Ring
+    const haloGeom = new THREE.RingGeometry(2.3, 2.45, 64);
+    const haloMat = new THREE.MeshBasicMaterial({
+      color: 0xe85d44,
+      transparent: true,
+      opacity: 0.25,
+      side: THREE.DoubleSide,
+    });
+    const haloMesh = new THREE.Mesh(haloGeom, haloMat);
+    haloMesh.rotation.x = -Math.PI / 2;
+    haloMesh.position.y = -2.84;
+    scene.add(haloMesh);
+
+    // Group for Mannequin
+    // Group for Mannequin
     const mannequinGroup = new THREE.Group();
     scene.add(mannequinGroup);
     mannequinGroupRef.current = mannequinGroup;
-
-    const bodyMat = new THREE.MeshStandardMaterial({
-      color: 0xf5eee8,
-      roughness: 0.35,
-      metalness: 0.1,
-    });
-
-    const jointMat = new THREE.MeshStandardMaterial({
-      color: 0xe5dcd4,
-      roughness: 0.4,
-      metalness: 0.15,
-    });
-
-    // 1. Head & Scalp
-    const headGeom = new THREE.SphereGeometry(0.55, 32, 32);
-    headGeom.scale(0.85, 1.05, 0.95);
-    const headMesh = new THREE.Mesh(headGeom, bodyMat);
-    headMesh.position.set(0, 2.75, 0);
-    headMesh.userData = { zone: "face" };
-    mannequinGroup.add(headMesh);
-
-    // 2. Neck
-    const neckGeom = new THREE.CylinderGeometry(0.24, 0.28, 0.38, 24);
-    const neckMesh = new THREE.Mesh(neckGeom, bodyMat);
-    neckMesh.position.set(0, 2.2, 0);
-    neckMesh.userData = { zone: "neck" };
-    mannequinGroup.add(neckMesh);
-
-    // 3. Torso (Chest & Back)
-    const chestGeom = new THREE.CylinderGeometry(0.68, 0.54, 0.95, 24);
-    chestGeom.scale(1.25, 1.0, 0.72);
-    const chestMesh = new THREE.Mesh(chestGeom, bodyMat);
-    chestMesh.position.set(0, 1.55, 0);
-    chestMesh.userData = { zone: "chest", backZone: "back" };
-    mannequinGroup.add(chestMesh);
-
-    // 4. Abdomen & Lower Back
-    const abdomenGeom = new THREE.CylinderGeometry(0.54, 0.58, 0.75, 24);
-    abdomenGeom.scale(1.15, 1.0, 0.7);
-    const abdomenMesh = new THREE.Mesh(abdomenGeom, bodyMat);
-    abdomenMesh.position.set(0, 0.75, 0);
-    abdomenMesh.userData = { zone: "abdomen", backZone: "back" };
-    mannequinGroup.add(abdomenMesh);
-
-    // 5. Pelvis / Hips
-    const pelvisGeom = new THREE.CylinderGeometry(0.58, 0.5, 0.5, 24);
-    pelvisGeom.scale(1.15, 1.0, 0.75);
-    const pelvisMesh = new THREE.Mesh(pelvisGeom, bodyMat);
-    pelvisMesh.position.set(0, 0.2, 0);
-    pelvisMesh.userData = { zone: "abdomen", backZone: "back" };
-    mannequinGroup.add(pelvisMesh);
-
-    // Helper for symmetrical limbs
-    const createLimb = (
-      name: string,
-      geom: THREE.BufferGeometry,
-      pos: [number, number, number],
-      rot: [number, number, number],
-      zone: string
-    ) => {
-      const mesh = new THREE.Mesh(geom, bodyMat);
-      mesh.position.set(...pos);
-      mesh.rotation.set(...rot);
-      mesh.userData = { zone };
-      mannequinGroup.add(mesh);
-      return mesh;
-    };
-
-    // Shoulders
-    const shoulderGeom = new THREE.SphereGeometry(0.24, 20, 20);
-    createLimb("l_shoulder", shoulderGeom, [-0.95, 1.9, 0], [0, 0, 0], "upper extremity");
-    createLimb("r_shoulder", shoulderGeom, [0.95, 1.9, 0], [0, 0, 0], "upper extremity");
-
-    // Upper Arms
-    const upperArmGeom = new THREE.CylinderGeometry(0.18, 0.15, 0.8, 16);
-    createLimb("l_upper_arm", upperArmGeom, [-1.08, 1.4, 0], [0, 0, -0.15], "upper extremity");
-    createLimb("r_upper_arm", upperArmGeom, [1.08, 1.4, 0], [0, 0, 0.15], "upper extremity");
-
-    // Forearms
-    const foreArmGeom = new THREE.CylinderGeometry(0.14, 0.12, 0.75, 16);
-    createLimb("l_forearm", foreArmGeom, [-1.22, 0.65, 0.05], [0, 0, -0.1], "upper extremity");
-    createLimb("r_forearm", foreArmGeom, [1.22, 0.65, 0.05], [0, 0, 0.1], "upper extremity");
-
-    // Hands
-    const handGeom = new THREE.SphereGeometry(0.16, 16, 16);
-    handGeom.scale(0.8, 1.3, 0.5);
-    createLimb("l_hand", handGeom, [-1.32, 0.15, 0.05], [0, 0, 0], "hand");
-    createLimb("r_hand", handGeom, [1.32, 0.15, 0.05], [0, 0, 0], "hand");
-
-    // Thighs
-    const thighGeom = new THREE.CylinderGeometry(0.25, 0.2, 1.1, 20);
-    createLimb("l_thigh", thighGeom, [-0.38, -0.55, 0], [0, 0, -0.04], "lower extremity");
-    createLimb("r_thigh", thighGeom, [0.38, -0.55, 0], [0, 0, 0.04], "lower extremity");
-
-    // Calves
-    const calfGeom = new THREE.CylinderGeometry(0.19, 0.14, 1.1, 20);
-    createLimb("l_calf", calfGeom, [-0.42, -1.65, 0], [0, 0, 0], "lower extremity");
-    createLimb("r_calf", calfGeom, [0.42, -1.65, 0], [0, 0, 0], "lower extremity");
-
-    // Feet
-    const footGeom = new THREE.BoxGeometry(0.25, 0.16, 0.55);
-    createLimb("l_foot", footGeom, [-0.42, -2.3, 0.12], [0, 0, 0], "foot");
-    createLimb("r_foot", footGeom, [0.42, -2.3, 0.12], [0, 0, 0], "foot");
 
     // Group for Pins / Markers
     const markersGroup = new THREE.Group();
@@ -318,7 +391,6 @@ export default function BodyMap3D({
     let clock = new THREE.Clock();
     const animate = () => {
       animationFrameRef.current = requestAnimationFrame(animate);
-      const delta = clock.getDelta();
 
       controls.update();
 
@@ -362,11 +434,21 @@ export default function BodyMap3D({
       window.removeEventListener("resize", handleResize);
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
       renderer.dispose();
-      bodyMat.dispose();
-      jointMat.dispose();
       controls.dispose();
     };
   }, []);
+
+  // Reload human model when gender changes or on initial mount
+  useEffect(() => {
+    if (!mannequinGroupRef.current) return;
+    loadHumanModel(modelGender);
+  }, [modelGender, loadHumanModel]);
+
+  // Handle Model Gender Change
+  const handleGenderToggle = (newGender: "male" | "female") => {
+    if (newGender === modelGender) return;
+    setModelGender(newGender);
+  };
 
   // Update 3D Markers whenever `pins` changes
   useEffect(() => {
@@ -456,16 +538,11 @@ export default function BodyMap3D({
       }
     }
 
-    // Otherwise check mannequin body surface
+    // Otherwise check human body surface
     const intersects = raycaster.intersectObjects(mannequinGroupRef.current.children, true);
     if (intersects.length > 0) {
       const hit = intersects[0];
-      let zone = hit.object.userData?.zone || "skin";
-
-      // If clicked on torso with normal facing backwards, classify as "back"
-      if (hit.point.z < -0.05 && hit.object.userData?.backZone) {
-        zone = "back";
-      }
+      const zone = getAnatomicalZoneFromPoint(hit.point);
 
       setNewPinPoint({
         x: Number(hit.point.x.toFixed(2)),
@@ -491,10 +568,7 @@ export default function BodyMap3D({
     const intersects = raycaster.intersectObjects(mannequinGroupRef.current.children, true);
     if (intersects.length > 0) {
       const hit = intersects[0];
-      let zone = hit.object.userData?.zone || "skin";
-      if (hit.point.z < -0.05 && hit.object.userData?.backZone) {
-        zone = "back";
-      }
+      const zone = getAnatomicalZoneFromPoint(hit.point);
       setHoveredZone(zone);
     } else {
       setHoveredZone(null);
@@ -551,43 +625,116 @@ export default function BodyMap3D({
   };
 
   return (
-    <div className="relative w-full rounded-3xl bg-white/90 backdrop-blur-2xl border border-[#F2E8E3] shadow-[0_20px_50px_-8px_rgba(28,25,23,0.06)] overflow-hidden flex flex-col lg:flex-row min-h-[640px]">
+    <div className="relative w-full rounded-3xl bg-white/90 backdrop-blur-2xl border border-[#F2E8E3] shadow-[0_20px_50px_-8px_rgba(28,25,23,0.06)] overflow-hidden flex flex-col lg:flex-row min-h-[660px]">
       {/* ===================================================================== */}
-      {/* 3D MANNEQUIN CANVAS VIEWPORT */}
+      {/* 3D REAL HUMAN BODY CANVAS VIEWPORT */}
       {/* ===================================================================== */}
       <div
         ref={mountRef}
-        className="relative flex-1 bg-gradient-to-b from-[#FAF4F0]/60 via-[#FFFFFF]/80 to-[#F5ECE5]/40 min-h-[500px] flex items-center justify-center overflow-hidden"
+        className="relative flex-1 bg-gradient-to-b from-[#FAF4F0]/60 via-[#FFFFFF]/80 to-[#F5ECE5]/40 min-h-[520px] flex items-center justify-center overflow-hidden"
       >
         {/* Subtle Anatomical Grid Background */}
         <div className="absolute inset-0 bg-[radial-gradient(#E85D44_1px,transparent_1px)] [background-size:24px_24px] opacity-15 pointer-events-none" />
 
         {/* View Controls & Presets Bar */}
-        <div className="absolute top-4 left-4 z-20 flex flex-wrap items-center gap-1.5 p-1.5 rounded-2xl bg-white/90 backdrop-blur-md border border-[#F2E8E3] shadow-sm">
-          <span className="text-[10px] font-bold text-[#78716C] px-2 flex items-center gap-1">
-            <Compass className="w-3.5 h-3.5 text-[#E85D44]" /> View:
-          </span>
-          {(["front", "back", "left", "right", "reset"] as const).map((view) => (
+        <div className="absolute top-4 left-4 z-20 flex flex-wrap items-center gap-2 p-1.5 rounded-2xl bg-white/95 backdrop-blur-md border border-[#F2E8E3] shadow-sm">
+          {/* Gender Model Switcher */}
+          <div className="flex items-center gap-1 bg-[#FAF4F0] p-0.5 rounded-xl border border-[#F2E8E3]">
             <button
-              key={view}
               type="button"
-              onClick={() => setPresetView(view)}
-              className={`px-2.5 py-1 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
-                activePreset === view
+              onClick={() => handleGenderToggle("male")}
+              className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all ${
+                modelGender === "male"
                   ? "bg-[#E85D44] text-white shadow-xs"
+                  : "text-[#78716C] hover:text-[#18181B]"
+              }`}
+            >
+              ♂ Male
+            </button>
+            <button
+              type="button"
+              onClick={() => handleGenderToggle("female")}
+              className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all ${
+                modelGender === "female"
+                  ? "bg-[#E85D44] text-white shadow-xs"
+                  : "text-[#78716C] hover:text-[#18181B]"
+              }`}
+            >
+              ♀ Female
+            </button>
+          </div>
+
+          <div className="h-4 w-px bg-[#E5DCD4]" />
+
+          {/* Camera View Angle Presets */}
+          <div className="flex items-center gap-1">
+            <span className="text-[10px] font-black uppercase tracking-wider text-[#78716C] px-1 flex items-center gap-1">
+              <Compass className="w-3.5 h-3.5 text-[#E85D44]" /> View:
+            </span>
+            {(["front", "back", "left", "right", "reset"] as const).map((view) => (
+              <button
+                key={view}
+                type="button"
+                onClick={() => setPresetView(view)}
+                className={`px-2 py-1 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
+                  activePreset === view
+                    ? "bg-[#18181B] text-white shadow-xs"
+                    : "bg-transparent text-[#78716C] hover:text-[#18181B] hover:bg-[#FAF4F0]"
+                }`}
+              >
+                {view}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Shading Style Selector & Real Human Anatomy Badge */}
+        <div className="absolute bottom-4 right-4 z-20 flex flex-wrap items-center gap-1.5 p-1.5 rounded-2xl bg-white/95 backdrop-blur-md border border-[#F2E8E3] shadow-sm">
+          <div className="flex items-center gap-1 px-2 text-[10px] font-black uppercase tracking-wider text-[#78716C] border-r border-[#F2E8E3] pr-2.5">
+            <Layers className="w-3.5 h-3.5 text-[#0D9488]" />
+            <span>Skin Shading:</span>
+          </div>
+          {(
+            [
+              { key: "realistic", label: "Classic Skin" },
+              { key: "holographic", label: "Hologram" },
+              { key: "clay", label: "Studio Clay" },
+            ] as const
+          ).map((t) => (
+            <button
+              key={t.key}
+              type="button"
+              onClick={() => setSkinTheme(t.key)}
+              className={`px-2.5 py-1 rounded-xl text-[11px] font-bold transition-all ${
+                skinTheme === t.key
+                  ? "bg-[#0D9488] text-white shadow-xs"
                   : "bg-transparent text-[#78716C] hover:text-[#18181B] hover:bg-[#FAF4F0]"
               }`}
             >
-              {view}
+              {t.label}
             </button>
           ))}
         </div>
 
         {/* Anatomical Zone Hover Tooltip */}
         {hoveredZone && (
-          <div className="absolute top-4 right-4 z-20 px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur-md border border-[#E85D44]/30 text-xs font-extrabold text-[#E85D44] shadow-md flex items-center gap-1.5 animate-in fade-in zoom-in-95">
+          <div className="absolute top-4 right-4 z-20 px-3.5 py-1.5 rounded-xl bg-white/95 backdrop-blur-md border border-[#E85D44]/40 text-xs font-black text-[#E85D44] shadow-md flex items-center gap-2 animate-in fade-in zoom-in-95">
             <span className="w-2 h-2 rounded-full bg-[#E85D44] animate-ping" />
-            <span className="capitalize">Zone: {hoveredZone}</span>
+            <span className="capitalize tracking-wide">Anatomical Zone: {hoveredZone}</span>
+          </div>
+        )}
+
+        {/* Model Status Badge */}
+        <div className="absolute top-16 left-4 z-20 px-3 py-1 rounded-full bg-white/90 backdrop-blur-md border border-[#F2E8E3] text-[10px] font-bold text-[#78716C] shadow-xs flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-[#10B981]" />
+          <span>Classic Anatomical {modelGender === "male" ? "Male" : "Female"} Model (Normal Skin Surface)</span>
+        </div>
+
+        {/* Loading Overlay */}
+        {isLoadingModel && (
+          <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-white/70 backdrop-blur-sm space-y-3">
+            <Loader2 className="w-8 h-8 text-[#E85D44] animate-spin" />
+            <p className="text-xs font-bold text-[#18181B]">Loading Classic 3D {modelGender === "male" ? "Male" : "Female"} Model...</p>
           </div>
         )}
 
@@ -600,9 +747,9 @@ export default function BodyMap3D({
         />
 
         {/* Instructions Overlay */}
-        <div className="absolute bottom-4 left-4 z-20 px-3 py-1.5 rounded-xl bg-white/80 backdrop-blur-md border border-[#F2E8E3] text-[11px] text-[#78716C] shadow-xs flex items-center gap-2">
-          <HelpCircle className="w-3.5 h-3.5 text-[#06B6D4]" />
-          <span>Click anywhere on the body to drop a pin • Drag to rotate 3D view</span>
+        <div className="absolute bottom-4 left-4 z-20 px-3 py-1.5 rounded-xl bg-white/85 backdrop-blur-md border border-[#F2E8E3] text-[11px] text-[#78716C] shadow-xs flex items-center gap-2">
+          <HelpCircle className="w-3.5 h-3.5 text-[#0D9488]" />
+          <span>Click anywhere on the body to drop a lesion pin • Drag to rotate 3D view</span>
         </div>
       </div>
 
@@ -618,7 +765,7 @@ export default function BodyMap3D({
             </div>
             <div>
               <h3 className="text-sm font-extrabold text-[#18181B]">Skin Log & Spot Tracker</h3>
-              <p className="text-[10px] text-[#78716C]">{pins.length} anatomical spots recorded</p>
+              <p className="text-[10px] text-[#78716C]">{pins.length} anatomical spots recorded ({modelGender})</p>
             </div>
           </div>
 

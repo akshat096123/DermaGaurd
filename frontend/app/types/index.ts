@@ -87,6 +87,7 @@ export interface Agent6Coordinator {
   decision: "AUTO_TRIAGE" | "REFER" | "RE_IMAGE";
   policy_rule_triggered: string;
   traceable_rationale: string;
+  confidence?: number;
   card_summary: Record<string, string>;
 }
 
